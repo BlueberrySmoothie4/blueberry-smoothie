@@ -49,8 +49,8 @@ http://localhost:8761/
 # 프론트엔드 실행
 ## 로컬 실행 방법
 cd vue-frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 
 ## 브라우저에서 접속
 http://localhost:3000 
