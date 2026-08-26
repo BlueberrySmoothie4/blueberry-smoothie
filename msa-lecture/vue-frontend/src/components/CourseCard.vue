@@ -15,7 +15,7 @@
         <span class="price">₩{{ Number(course.price).toLocaleString() }}</span>
       </div>
       <div class="card-footer">
-        <span class="enrolled">수강생 {{ course.enrollmentCount?.toLocaleString() }}명</span>
+        <span class="enrolled">구독 기업 {{ course.enrollmentCount?.toLocaleString() }}개사</span>
       </div>
     </div>
   </router-link>
@@ -75,12 +75,12 @@ const thumbSrc = computed(() => {
   justify-content: center;
   overflow: hidden;
 }
-.thumb-teal   { background: #E1F5EE; }
-.thumb-blue   { background: #E6F1FB; }
-.thumb-amber  { background: #FAEEDA; }
-.thumb-purple { background: #EEEDFE; }
-.thumb-pink   { background: #FBEAF0; }
-.thumb-gray   { background: #F1EFE8; }
+.thumb-teal   { background: #E1F0EA; }
+.thumb-blue   { background: #E7EEF6; }
+.thumb-amber  { background: #F4ECD2; }
+.thumb-purple { background: #ECE8F4; }
+.thumb-pink   { background: #F5E8E6; }
+.thumb-gray   { background: #EFEBE2; }
 .thumb-img {
   width: 100%;
   height: 100%;
@@ -100,8 +100,9 @@ const thumbSrc = computed(() => {
   flex: 1;
 }
 .card-title {
+  font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
   line-height: 1.4;
 }

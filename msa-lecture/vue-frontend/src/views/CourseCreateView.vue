@@ -13,7 +13,7 @@
             class="sidebar-item"
             :class="{ active: $route.path === '/courses' }"
           >
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">📚</span> API 카탈로그
           </router-link>
 
           <router-link
@@ -21,7 +21,7 @@
             class="sidebar-item"
             :class="{ active: $route.path === '/courses/new' }"
           >
-            <span class="si-icon">✍️</span> 강의 등록
+            <span class="si-icon">✍️</span> API 등록
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item">
@@ -44,33 +44,33 @@
       <main class="main-content">
         <div class="content-header">
           <div>
-            <h1 class="page-title">강의 등록</h1>
-            <p class="page-subtitle">강사 계정으로 새로운 강의를 등록합니다.</p>
+            <h1 class="page-title">API 등록</h1>
+            <p class="page-subtitle">제공사 계정으로 새로운 API를 등록합니다.</p>
           </div>
         </div>
 
         <div class="form-card">
           <form class="course-form" @submit.prevent="handleSubmit">
             <div class="form-group">
-              <label class="form-label" for="title">강의명</label>
+              <label class="form-label" for="title">API 상품명</label>
               <input
                 id="title"
                 v-model.trim="form.title"
                 type="text"
                 class="form-input"
-                placeholder="예: Cloud Native App기반 Web Service 개발"
+                placeholder="예: 실시간 문서 요약 API"
                 maxlength="100"
               />
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="description">강의 설명</label>
+              <label class="form-label" for="description">API 설명</label>
               <textarea
                 id="description"
                 v-model.trim="form.description"
                 class="form-textarea"
                 rows="6"
-                placeholder="강의 소개, 학습 목표, 대상 등을 입력해 주세요."
+                placeholder="API 소개, 성능/제약, 대상 고객 등을 입력해 주세요."
               ></textarea>
             </div>
 
@@ -122,7 +122,7 @@
 
               <button type="submit" class="btn btn-primary" :disabled="submitting">
                 <span v-if="submitting">등록 중...</span>
-                <span v-else>강의 등록</span>
+                <span v-else>API 등록</span>
               </button>
             </div>
           </form>
@@ -155,10 +155,10 @@ const submitError = ref('')
 const submitSuccess = ref('')
 
 const categoryOptions = [
-  { label: '백엔드', value: 'BACKEND' },
-  { label: '프론트엔드', value: 'FRONTEND' },
-  { label: 'DevOps', value: 'DEVOPS' },
-  { label: 'AI / 데이터', value: 'DATA_SCIENCE' }
+  { label: '텍스트/NLP', value: 'BACKEND' },
+  { label: '비전', value: 'FRONTEND' },
+  { label: '인프라', value: 'DEVOPS' },
+  { label: '데이터 / 생성형AI', value: 'DATA_SCIENCE' }
 ]
 
 function handleLogout() {
@@ -170,17 +170,17 @@ function validateForm() {
   validationError.value = ''
 
   if (!auth.user || auth.user.role !== 'INSTRUCTOR') {
-    validationError.value = '강사 계정만 강의를 등록할 수 있습니다.'
+    validationError.value = '제공사 계정만 API를 등록할 수 있습니다.'
     return false
   }
 
   if (!form.title) {
-    validationError.value = '강의명을 입력해 주세요.'
+    validationError.value = 'API 상품명을 입력해 주세요.'
     return false
   }
 
   if (!form.description) {
-    validationError.value = '강의 설명을 입력해 주세요.'
+    validationError.value = 'API 설명을 입력해 주세요.'
     return false
   }
 
@@ -222,7 +222,7 @@ async function handleSubmit() {
     const res = await courseApi.create(payload)
     console.log('[CourseCreate] create response =', res.data)
 
-    submitSuccess.value = '강의가 성공적으로 등록되었습니다.'
+    submitSuccess.value = 'API가 성공적으로 등록되었습니다.'
 
     const createdCourseId =
       res.data?.data?.id ??
@@ -241,7 +241,7 @@ async function handleSubmit() {
     console.error('[CourseCreate] create failed:', error)
     submitError.value =
       error.response?.data?.message ||
-      '강의 등록에 실패했습니다.'
+      'API 등록에 실패했습니다.'
   } finally {
     submitting.value = false
   }
@@ -333,8 +333,9 @@ async function handleSubmit() {
 }
 
 .page-title {
+  font-family: var(--font-display);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text-primary);
 }
 
@@ -396,7 +397,7 @@ async function handleSubmit() {
 .form-textarea:focus,
 .form-select:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 3px rgba(163, 78, 20, 0.1);
 }
 
 .form-textarea {
@@ -406,16 +407,16 @@ async function handleSubmit() {
 }
 
 .error-box {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--color-danger-light);
+  color: var(--color-danger);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   font-size: 13px;
 }
 
 .success-box {
-  background: #ecfdf3;
-  color: #15803d;
+  background: var(--color-success-light);
+  color: var(--color-success);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   font-size: 13px;

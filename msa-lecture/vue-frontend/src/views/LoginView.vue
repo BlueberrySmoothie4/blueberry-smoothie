@@ -4,12 +4,12 @@
       <!-- 좌측 브랜딩 -->
       <div class="login-left">
         <div class="brand">
-          <img src="@/assets/images/logo/main_logo.png" alt="LearnNexus" class="brand-logo" />
-          <span class="brand-name">LearnNexus</span>
+          <img src="@/assets/images/logo/main_logo.png" alt="APINexus" class="brand-logo" />
+          <span class="brand-name">APINexus</span>
         </div>
         <div class="brand-content">
           <h2>다시 만나서<br>반갑습니다</h2>
-          <p>로그인하고 나만의 학습 여정을 이어가세요.</p>
+          <p>로그인하고 구독 중인 API를 바로 확인하세요.</p>
           <ul class="feature-list">
             <li v-for="f in features" :key="f">
               <span class="dot"></span>{{ f }}
@@ -26,7 +26,7 @@
           <!-- 로그인 영역 -->
           <div v-if="!showRegister" class="section">
             <h3 class="section-title">로그인</h3>
-            <p class="section-desc">LearnNexus 계정으로 로그인합니다.</p>
+            <p class="section-desc">APINexus 계정으로 로그인합니다.</p>
             <button class="btn btn-primary btn-full" @click="handleOAuth">로그인</button>
             <div class="switch-link">
               계정이 없으신가요?
@@ -53,8 +53,8 @@
               <div class="form-group">
                 <label class="form-label">역할</label>
                 <select v-model="registerForm.role" class="form-input">
-                  <option value="STUDENT">학생</option>
-                  <option value="INSTRUCTOR">강사</option>
+                  <option value="STUDENT">구매 기업 담당자</option>
+                  <option value="INSTRUCTOR">API 제공사</option>
                 </select>
               </div>
               <div v-if="error" class="error-msg">{{ error }}</div>
@@ -90,7 +90,7 @@ const success = ref('')
 
 const registerForm = ref({ name: '', email: '', password: '', role: 'STUDENT' })
 
-const features = ['수강 중인 강의 이어보기', '맞춤 강의 추천', '수료증 관리']
+const features = ['구독 중인 API Key 확인', '맞춤 API 추천', '결제·크레딧 내역 관리']
 
 function handleOAuth() {
   auth.redirectToLogin()
@@ -129,7 +129,7 @@ async function handleRegister() {
   min-height: 100vh;
 }
 .login-left {
-  background: linear-gradient(160deg, #1a4f8a 0%, #185FA5 50%, #1e7bc4 100%);
+  background: linear-gradient(160deg, #201C17 0%, #4A3419 55%, #A34E14 100%);
   padding: 48px;
   display: flex;
   flex-direction: column;
@@ -137,9 +137,10 @@ async function handleRegister() {
 }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; }
-.brand-name { font-size: 18px; font-weight: 700; color: #fff; }
+.brand-name { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; }
 .brand-content h2 {
-  font-size: 32px; font-weight: 700; color: #fff;
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 800; color: #fff;
   line-height: 1.35; margin-bottom: 14px;
 }
 .brand-content p { font-size: 15px; color: rgba(255,255,255,0.75); margin-bottom: 28px; }
@@ -165,7 +166,7 @@ async function handleRegister() {
 .back-link:hover { color: var(--color-primary); }
 
 .section { display: flex; flex-direction: column; gap: 16px; }
-.section-title { font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
+.section-title { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--color-text-primary); margin-bottom: 4px; }
 .section-desc { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 4px; }
 
 .form { display: flex; flex-direction: column; gap: 14px; }
@@ -203,18 +204,18 @@ async function handleRegister() {
 }
 .error-msg {
   padding: 10px 14px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-light);
+  border: 1px solid #EDCAC6;
   border-radius: var(--radius-md);
   font-size: 13px;
-  color: #dc2626;
+  color: var(--color-danger);
 }
 .success-msg {
   padding: 10px 14px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--color-success-light);
+  border: 1px solid #C4E0D2;
   border-radius: var(--radius-md);
   font-size: 13px;
-  color: #16a34a;
+  color: var(--color-success);
 }
 </style>

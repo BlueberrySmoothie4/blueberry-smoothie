@@ -12,7 +12,7 @@
             class="sidebar-item"
             :class="{ active: $route.path === '/courses' }"
           >
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">📚</span> API 카탈로그
           </router-link>
 
           <router-link
@@ -20,7 +20,7 @@
             to="/enrollments"
             class="sidebar-item"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 내 구독 목록
           </router-link>
 
           <router-link
@@ -46,9 +46,9 @@
       <main class="main-content">
         <div class="content-header">
           <div>
-            <h1 class="page-title">강의 목록</h1>
+            <h1 class="page-title">API 카탈로그</h1>
             <p class="page-subtitle" v-if="isInstructor">
-              강사 계정으로 등록된 강의를 확인하고 새 강의를 추가할 수 있습니다.
+              제공사 계정으로 등록된 API를 확인하고 새 API를 추가할 수 있습니다.
             </p>
           </div>
 
@@ -57,7 +57,7 @@
             to="/courses/new"
             class="btn btn-primary create-course-btn"
           >
-            강의 등록
+            API 등록
           </router-link>
         </div>
 
@@ -96,14 +96,14 @@
 
         <!-- 빈 상태 -->
         <div v-else class="empty-state">
-          <p>해당 카테고리의 강의가 없습니다.</p>
+          <p>해당 카테고리의 API가 없습니다.</p>
 
           <router-link
             v-if="isInstructor"
             to="/courses/new"
             class="btn btn-primary empty-action-btn"
           >
-            첫 강의 등록하기
+            첫 API 등록하기
           </router-link>
         </div>
       </main>
@@ -237,8 +237,9 @@ onMounted(() => {
 }
 
 .page-title {
+  font-family: var(--font-display);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text-primary);
 }
 
@@ -307,7 +308,7 @@ onMounted(() => {
 
 .skeleton-thumb {
   height: 120px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #EFEBE2 25%, #E4DFD4 50%, #EFEBE2 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
@@ -322,7 +323,7 @@ onMounted(() => {
 .skeleton-line {
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #EFEBE2 25%, #E4DFD4 50%, #EFEBE2 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }

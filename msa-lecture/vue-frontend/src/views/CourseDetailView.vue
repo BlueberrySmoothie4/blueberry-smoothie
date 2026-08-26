@@ -10,12 +10,12 @@
             <span class="badge" :class="badgeClass">{{ displayCategory }}</span>
             <h1 class="detail-title">{{ course.title }}</h1>
             <p class="detail-desc">
-              {{ course.description || '실무 전문가가 직접 설계한 커리큘럼으로 체계적으로 학습하세요.' }}
+              {{ course.description || '성능과 제약 조건을 확인하고 바로 연동할 수 있는 AI API입니다.' }}
             </p>
 
             <div class="detail-meta">
-              <span>강사: {{ displayInstructorName }}</span>
-              <span>수강생: {{ displayEnrollmentCount }}명</span>
+              <span>제공사: {{ displayInstructorName }}</span>
+              <span>구독 기업: {{ displayEnrollmentCount }}개사</span>
             </div>
           </div>
 
@@ -45,9 +45,9 @@
               </p>
 
               <ul class="enroll-info-list">
-                <li>✅ 즉시 수강 가능</li>
-                <li>✅ 평생 소장</li>
-                <li>✅ 수료증 발급</li>
+                <li>✅ 결제 즉시 Key 발급</li>
+                <li>✅ 언제든 재발급 가능</li>
+                <li>✅ 사용량 대시보드 제공</li>
               </ul>
             </div>
           </div>
@@ -60,7 +60,7 @@
     </div>
 
     <div v-else class="loading-center">
-      <p class="empty-text">강의 정보를 불러오지 못했습니다.</p>
+      <p class="empty-text">API 정보를 불러오지 못했습니다.</p>
     </div>
   </div>
 </template>
@@ -107,7 +107,7 @@ const displayInstructorName = computed(() => {
     course.value?.instructor?.name ||
     course.value?.instructor_name ||
     course.value?.ownerName ||
-    '강사 정보 없음'
+    '제공사 정보 없음'
   )
 })
 
@@ -137,10 +137,10 @@ const thumbSrc = computed(() => {
 })
 
 const buttonLabel = computed(() => {
-  if (isInstructor.value) return '강사 계정은 신청 불가'
-  if (enrollmentStatus.value === 'ACTIVE') return '내 수강 목록으로 이동'
+  if (isInstructor.value) return '제공사 계정은 구독 불가'
+  if (enrollmentStatus.value === 'ACTIVE') return '내 구독 목록으로 이동'
   if (enrollmentStatus.value === 'PENDING') return '신청 완료 · 결제 처리 중'
-  return '결제하고 수강하기'
+  return '결제하고 구독하기'
 })
 
 const buttonDisabled = computed(() => {
@@ -152,18 +152,18 @@ const buttonDisabled = computed(() => {
 
 const helperText = computed(() => {
   if (isInstructor.value) {
-    return '강사 계정은 본인 강의를 수강 신청할 수 없습니다.'
+    return '제공사 계정은 본인 API를 구독 신청할 수 없습니다.'
   }
 
   if (enrollmentStatus.value === 'ACTIVE') {
-    return '이미 수강 중인 강의입니다. 내 수강 목록에서 바로 이어서 학습할 수 있습니다.'
+    return '이미 구독 중인 API입니다. 내 구독 목록에서 바로 Key를 확인할 수 있습니다.'
   }
 
   if (enrollmentStatus.value === 'PENDING') {
-    return '수강 신청이 접수되었습니다. 결제/처리 상태가 반영되면 내 수강 목록에서 확인할 수 있습니다.'
+    return '구독 신청이 접수되었습니다. 결제/처리 상태가 반영되면 내 구독 목록에서 확인할 수 있습니다.'
   }
 
-  return '결제를 진행하면 수강 신청이 함께 처리됩니다.'
+  return '결제를 진행하면 구독 신청이 함께 처리됩니다.'
 })
 
 async function loadEnrollmentStatus() {
@@ -200,12 +200,12 @@ async function handlePrimaryAction() {
   enrollError.value = ''
 
   if (!course.value?.id) {
-    enrollError.value = '강의 정보가 올바르지 않습니다.'
+    enrollError.value = 'API 정보가 올바르지 않습니다.'
     return
   }
 
   if (isInstructor.value) {
-    enrollError.value = '강사 계정은 본인 강의를 수강 신청할 수 없습니다.'
+    enrollError.value = '제공사 계정은 본인 API를 구독 신청할 수 없습니다.'
     return
   }
 
@@ -225,7 +225,7 @@ async function handlePrimaryAction() {
     enrollmentStatus.value = 'PENDING'
   } catch (e) {
     console.error('[CourseDetail] enroll failed:', e)
-    enrollError.value = e.response?.data?.message || '결제/수강 신청에 실패했습니다.'
+    enrollError.value = e.response?.data?.message || '결제/구독 신청에 실패했습니다.'
   } finally {
     enrolling.value = false
   }
@@ -256,7 +256,7 @@ watch(
 }
 
 .detail-hero {
-  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+  background: linear-gradient(135deg, #FBF6EE 0%, #F6EBDA 100%);
   border-bottom: 1px solid var(--color-border);
   padding: 48px 0;
 }
@@ -278,8 +278,9 @@ watch(
 }
 
 .detail-title {
+  font-family: var(--font-display);
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.3;
 }
 
@@ -319,11 +320,11 @@ watch(
   padding: 20px;
 }
 
-.thumb-teal { background: #E1F5EE; }
-.thumb-blue { background: #E6F1FB; }
-.thumb-purple { background: #EEEDFE; }
-.thumb-pink { background: #FBEAF0; }
-.thumb-gray { background: #F1EFE8; }
+.thumb-teal { background: #E1F0EA; }
+.thumb-blue { background: #E7EEF6; }
+.thumb-purple { background: #ECE8F4; }
+.thumb-pink { background: #F5E8E6; }
+.thumb-gray { background: #EFEBE2; }
 
 .enroll-body {
   padding: 20px;
@@ -333,9 +334,11 @@ watch(
 }
 
 .enroll-price {
+  font-family: var(--font-display);
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .btn-full {
@@ -364,9 +367,9 @@ watch(
 
 .error-msg {
   font-size: 13px;
-  color: #dc2626;
+  color: var(--color-danger);
   padding: 8px 12px;
-  background: #fef2f2;
+  background: var(--color-danger-light);
   border-radius: var(--radius-sm);
 }
 
@@ -397,8 +400,8 @@ watch(
 }
 
 .badge-gray {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #EFEBE2;
+  color: #6B6455;
 }
 
 @keyframes spin {

@@ -7,7 +7,7 @@
           <div class="sidebar-label">메뉴</div>
 
           <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">📚</span> API 카탈로그
           </router-link>
 
           <router-link
@@ -15,7 +15,7 @@
             to="/enrollments"
             class="sidebar-item"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 내 구독 목록
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item active">
@@ -39,14 +39,14 @@
             <h2 class="profile-name">{{ auth.user?.name || '사용자' }}</h2>
             <p class="profile-email">{{ auth.user?.email || '-' }}</p>
             <span class="badge" :class="isInstructor ? 'badge-amber' : 'badge-blue'">
-              {{ isInstructor ? '강사' : '학생' }}
+              {{ isInstructor ? 'API 제공사' : '구매 기업 담당자' }}
             </span>
           </div>
         </div>
 
         <!-- 학생 화면 -->
         <section v-if="!isInstructor" class="recommend-section">
-          <h3 class="section-title">추천 강의</h3>
+          <h3 class="section-title">추천 API</h3>
 
           <p v-if="recommendMessage" class="recommend-message">
             {{ recommendMessage }}
@@ -71,24 +71,24 @@
           </p>
 
           <p v-else class="empty-text">
-            아직 추천할 강의가 없습니다.
+            아직 추천할 API가 없습니다.
           </p>
         </section>
 
         <!-- 강사 화면 -->
         <section v-else class="instructor-section">
           <div class="section-head">
-            <h3 class="section-title">내가 등록한 강좌</h3>
-            <span class="section-subtitle">등록한 강좌와 강좌별 수강생 수를 확인할 수 있습니다.</span>
+            <h3 class="section-title">내가 등록한 API</h3>
+            <span class="section-subtitle">등록한 API와 API별 구독 기업 수를 확인할 수 있습니다.</span>
           </div>
 
           <div class="summary-cards">
             <div class="summary-card">
-              <div class="summary-label">등록 강좌 수</div>
+              <div class="summary-label">등록 API 수</div>
               <div class="summary-value">{{ myCourses.length }}</div>
             </div>
             <div class="summary-card">
-              <div class="summary-label">총 수강생 수</div>
+              <div class="summary-label">총 구독 기업 수</div>
               <div class="summary-value">{{ totalEnrollmentCount }}</div>
             </div>
           </div>
@@ -132,20 +132,20 @@
                   <div class="meta-value">{{ formatPrice(course.price) }}</div>
                 </div>
                 <div class="meta-box">
-                  <div class="meta-label">수강생 수</div>
+                  <div class="meta-label">구독 기업 수</div>
                   <div class="meta-value">
-                    {{ course.enrollment_count ?? course.enrollmentCount ?? 0 }}명
+                    {{ course.enrollment_count ?? course.enrollmentCount ?? 0 }}개사
                   </div>
                 </div>
                 <div class="meta-box">
-                  <div class="meta-label">강좌 ID</div>
+                  <div class="meta-label">API ID</div>
                   <div class="meta-value">#{{ course.id }}</div>
                 </div>
               </div>
 
               <div class="course-card-actions">
                 <router-link :to="`/courses/${course.id}`" class="action-btn action-primary">
-                  강좌 보기
+                  API 보기
                 </router-link>
               </div>
             </div>
@@ -156,7 +156,7 @@
           </p>
 
           <p v-else class="empty-text">
-            아직 등록한 강좌가 없습니다.
+            아직 등록한 API가 없습니다.
           </p>
         </section>
       </main>
@@ -225,13 +225,13 @@ async function loadStudentRecommendations() {
   try {
     if (!auth.user) {
       console.warn('[MyPage] auth.user is missing')
-      recommendError.value = '추천 강의를 준비 중입니다.'
+      recommendError.value = '추천 API를 준비 중입니다.'
       return
     }
 
     if (!auth.user.id) {
       console.warn('[MyPage] auth.user.id is missing:', auth.user)
-      recommendError.value = '추천 강의를 준비 중입니다.'
+      recommendError.value = '추천 API를 준비 중입니다.'
       return
     }
 
@@ -256,7 +256,7 @@ async function loadStudentRecommendations() {
     }
   } catch (error) {
     console.error('[MyPage] failed to load recommendations:', error)
-    recommendError.value = '현재 추천 강의를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    recommendError.value = '현재 추천 API를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
   } finally {
     recommendLoading.value = false
   }
@@ -266,13 +266,13 @@ async function loadInstructorCourses() {
   try {
     if (!auth.user) {
       console.warn('[MyPage] instructor auth.user is missing')
-      instructorError.value = '강좌 정보를 불러오지 못했습니다.'
+      instructorError.value = 'API 정보를 불러오지 못했습니다.'
       return
     }
 
     if (!auth.user.id) {
       console.warn('[MyPage] instructor auth.user.id is missing:', auth.user)
-      instructorError.value = '강좌 정보를 불러오지 못했습니다.'
+      instructorError.value = 'API 정보를 불러오지 못했습니다.'
       return
     }
 
@@ -315,7 +315,7 @@ async function loadInstructorCourses() {
     console.log('[MyPage] filtered myCourses =', myCourses.value)
   } catch (error) {
     console.error('[MyPage] failed to load instructor courses:', error)
-    instructorError.value = '현재 강좌 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    instructorError.value = '현재 API 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
   } finally {
     instructorLoading.value = false
   }
@@ -441,8 +441,9 @@ onMounted(async () => {
 }
 
 .profile-name {
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .profile-email {
@@ -461,13 +462,13 @@ onMounted(async () => {
 }
 
 .badge-blue {
-  background: #e8f1ff;
-  color: #2563eb;
+  background: #E7EEF6;
+  color: #2C5C8A;
 }
 
 .badge-amber {
-  background: #f7edd8;
-  color: #9a6700;
+  background: var(--color-warning-light);
+  color: var(--color-warning);
 }
 
 .section-head {
@@ -478,8 +479,9 @@ onMounted(async () => {
 }
 
 .section-title {
+  font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .section-subtitle {
@@ -518,7 +520,7 @@ onMounted(async () => {
 
 .skeleton-thumb {
   height: 110px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #EFEBE2 25%, #E4DFD4 50%, #EFEBE2 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
@@ -533,7 +535,7 @@ onMounted(async () => {
 .skeleton-line {
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #EFEBE2 25%, #E4DFD4 50%, #EFEBE2 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
@@ -564,9 +566,11 @@ onMounted(async () => {
 }
 
 .summary-value {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .instructor-course-list {
@@ -591,8 +595,9 @@ onMounted(async () => {
 }
 
 .course-title {
+  font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 8px;
 }
 
@@ -614,13 +619,13 @@ onMounted(async () => {
 }
 
 .status-active {
-  background: #eaf8ef;
-  color: #0f8a3b;
+  background: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .status-inactive {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #EFEBE2;
+  color: #6B6455;
 }
 
 .course-meta-grid {

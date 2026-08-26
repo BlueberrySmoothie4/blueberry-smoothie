@@ -80,7 +80,7 @@ export const useCourseStore = defineStore('course', () => {
       console.log('[CourseStore] normalized courses =', courses.value)
     } catch (e) {
       console.error('[CourseStore] fetchCourses failed:', e)
-      error.value = e.message || '강의 목록을 불러오지 못했습니다.'
+      error.value = e.message || 'API 목록을 불러오지 못했습니다.'
       courses.value = []
     } finally {
       loading.value = false
@@ -105,7 +105,7 @@ export const useCourseStore = defineStore('course', () => {
       console.log('[CourseStore] normalized selectedCourse =', selectedCourse.value)
     } catch (e) {
       console.error('[CourseStore] fetchCourse failed:', e)
-      error.value = e.message || '강의 정보를 불러오지 못했습니다.'
+      error.value = e.message || 'API 정보를 불러오지 못했습니다.'
       selectedCourse.value = null
     } finally {
       loading.value = false
