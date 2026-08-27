@@ -56,6 +56,11 @@ export function categoryLabel(category) {
   return BY_KEY[category]?.label || category || "기타";
 }
 
+/** 화면 라벨(비전) → 백엔드 enum(VISION) */
+export function categoryValue(labelOrValue) {
+  return BY_KEY[labelOrValue]?.value || labelOrValue;
+}
+
 export function categoryStyle(category) {
   return BY_KEY[category] || FALLBACK_STYLE;
 }

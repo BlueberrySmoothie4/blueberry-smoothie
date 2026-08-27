@@ -39,7 +39,7 @@
             </button>
           </div>
           <span class="result-count" v-if="!loading">
-            <span class="tabular">{{ filteredProducts.length }}</span
+            <span class="tabular">{{ products.length }}</span
             >개
           </span>
         </div>
@@ -52,9 +52,9 @@
           </div>
         </div>
 
-        <div v-else-if="filteredProducts.length" class="product-grid">
+        <div v-else-if="products.length" class="product-grid">
           <ProductCard
-            v-for="product in filteredProducts"
+            v-for="product in products"
             :key="product.id"
             :product="product"
           />
@@ -106,15 +106,8 @@ const { categories } = productStore;
 
 const loading = computed(() => productStore.loading);
 const selectedCategory = computed(() => productStore.selectedCategory);
+const products = computed(() => productStore.products);
 const isProvider = computed(() => auth.user?.role === "PROVIDER");
-
-const filteredProducts = computed(() => {
-  if (!Array.isArray(productStore.products)) return [];
-  if (selectedCategory.value === "전체") return productStore.products;
-  return productStore.products.filter(
-    (p) => p.category === selectedCategory.value,
-  );
-});
 
 function selectCategory(cat) {
   productStore.setCategory(cat);
