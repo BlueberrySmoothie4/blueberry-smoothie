@@ -16,7 +16,7 @@
         <div class="hero-copy">
           <p class="eyebrow enter" style="--d: 0ms">
             <span class="eyebrow-rule"></span>
-            AI 컴포넌트 원스톱 마켓플레이스
+            {{ BRAND.fullName }}
           </p>
 
           <h1 class="hero-title enter" style="--d: 80ms">
@@ -25,8 +25,8 @@
           </h1>
 
           <p class="hero-desc enter" style="--d: 160ms">
-            텍스트·비전·음성 API를 성능과 요금으로 비교하고, 구독 즉시 발급되는
-            Key로 바로 연동하세요.
+            언어·비전·음성 API를 스펙과 요금으로 나란히 비교하고, 크레딧으로
+            결제하면 그 자리에서 구독이 시작됩니다.
           </p>
 
           <div class="hero-actions enter" style="--d: 240ms">
@@ -386,7 +386,11 @@
 
     <footer class="footer">
       <div class="wrap footer-inner">
-        <span class="footer-brand">{{ BRAND.name }}</span>
+        <span class="footer-brand">
+          <span class="footer-sk">{{ BRAND.prefix }}</span
+          ><span>{{ BRAND.suffix }}</span>
+          <em>{{ BRAND.fullName }}</em>
+        </span>
         <p class="footer-copy">© 2026 {{ BRAND.name }}. All rights reserved.</p>
       </div>
     </footer>
@@ -629,9 +633,9 @@ onUnmounted(() => {
 
 <style scoped>
 .landing {
-  /* 다크 팔레트 */
-  --d-bg: #0a0b0d;
-  --d-bg-alt: #101217;
+  /* 다크 팔레트 — 남색 기운을 뺀 중성 먹색에 SK 색상만 얹는다 */
+  --d-bg: #0b0b0c;
+  --d-bg-alt: #131113;
   --d-line: rgba(255, 255, 255, 0.09);
   --d-line-2: rgba(255, 255, 255, 0.16);
   --d-surface: rgba(255, 255, 255, 0.035);
@@ -639,7 +643,7 @@ onUnmounted(() => {
   --d-text: #ffffff;
   --d-text-2: rgba(255, 255, 255, 0.58);
   --d-text-3: rgba(255, 255, 255, 0.4);
-  --d-cyan: #7dd3fc;
+  --d-accent: var(--sk-orange);
 
   background: var(--d-bg);
   color: var(--d-text);
@@ -751,19 +755,19 @@ onUnmounted(() => {
   );
 }
 
+/* 히어로 뒤 컬러 블롭은 걷어내고, 화면 밖에서 들어오는 조명처럼만 남긴다 */
 .hero-glow {
   position: absolute;
-  top: -280px;
-  left: 50%;
-  width: 1000px;
-  height: 620px;
-  transform: translateX(-52%);
+  top: -420px;
+  left: 62%;
+  width: 760px;
+  height: 640px;
   background: radial-gradient(
     ellipse at center,
-    rgba(49, 130, 246, 0.22),
-    transparent 62%
+    rgba(234, 0, 44, 0.13),
+    transparent 68%
   );
-  filter: blur(20px);
+  filter: blur(40px);
 }
 
 .hero-inner {
@@ -793,8 +797,8 @@ onUnmounted(() => {
 
 .eyebrow-rule {
   width: 28px;
-  height: 1px;
-  background: var(--d-line-2);
+  height: 2px;
+  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
 }
 
 .hero-title {
@@ -830,16 +834,20 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 15px 26px;
-  border-radius: 12px;
-  background: #fff;
-  color: var(--d-bg);
+  border-radius: 10px;
+  background: var(--sk-red);
+  color: #fff;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    background 0.2s ease;
+  box-shadow: 0 10px 26px -10px rgba(234, 0, 44, 0.55);
+}
+
+.cta-solid:hover {
+  background: var(--sk-red-dark);
 }
 
 .cta-solid svg {
@@ -859,7 +867,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 15px 22px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--d-line-2);
   color: rgba(255, 255, 255, 0.82);
   font-size: 15px;
@@ -879,7 +887,7 @@ onUnmounted(() => {
 }
 
 .console {
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(20, 22, 26, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(12px);
@@ -968,13 +976,13 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.32);
 }
 .c-cmd {
-  color: var(--d-cyan);
+  color: var(--sk-orange);
 }
 .c-str {
-  color: #fcd34d;
+  color: #e8b25f;
 }
 .c-key {
-  color: #a5b4fc;
+  color: #f0a8b4;
 }
 .c-num {
   color: #f0abfc;
@@ -1039,16 +1047,17 @@ onUnmounted(() => {
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--d-cyan);
+  color: var(--d-accent);
   margin-bottom: 10px;
 }
 
+/* 굵기를 전부 800으로 맞추면 위계가 사라진다. 디스플레이만 800, 나머지는 700 */
 .section-title {
-  font-size: 32px;
-  font-weight: 800;
+  font-size: 36px;
+  font-weight: 700;
   letter-spacing: -0.035em;
   color: var(--d-text);
-  line-height: 1.35;
+  line-height: 1.32;
 }
 
 .section-head {
@@ -1098,7 +1107,7 @@ onUnmounted(() => {
   flex-direction: column;
   height: 100%;
   padding: 26px;
-  border-radius: 18px;
+  border-radius: 12px;
   border: 1px solid var(--d-line);
   background: var(--d-surface);
   overflow: hidden;
@@ -1124,7 +1133,7 @@ onUnmounted(() => {
   border-radius: inherit;
   background: radial-gradient(
     320px circle at var(--mx, 50%) var(--my, 0px),
-    rgba(125, 211, 252, 0.12),
+    rgba(244, 119, 37, 0.12),
     transparent 62%
   );
   opacity: 0;
@@ -1270,7 +1279,7 @@ onUnmounted(() => {
   inset: 0;
   display: flex;
   flex-direction: column;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--d-surface);
   border: 1px solid var(--d-line);
   backdrop-filter: blur(10px);
@@ -1321,7 +1330,7 @@ onUnmounted(() => {
   height: 100%;
   width: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-primary), var(--d-cyan));
+  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
   transform: scaleX(0);
   transform-origin: 0 50%;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1462,7 +1471,7 @@ onUnmounted(() => {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #3182f6, #7dd3fc);
+  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
   transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
 }
 
@@ -1566,7 +1575,7 @@ onUnmounted(() => {
   display: block;
   height: 100%;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--color-primary), var(--d-cyan));
+  background: linear-gradient(180deg, var(--sk-red), var(--sk-orange));
   transform: scaleY(0);
   transform-origin: 50% 0;
   transition: transform 0.18s linear;
@@ -1616,22 +1625,22 @@ onUnmounted(() => {
 }
 
 .story-step.on .step-dot {
-  border-color: var(--d-cyan);
+  border-color: var(--sk-orange);
   transform: scale(1.25);
-  box-shadow: 0 0 0 5px rgba(125, 211, 252, 0.14);
+  box-shadow: 0 0 0 5px rgba(244, 119, 37, 0.16);
 }
 
 .step-num {
   font-family: var(--font-mono);
   font-size: 12.5px;
-  color: var(--d-cyan);
+  color: var(--d-accent);
   margin-bottom: 14px;
 }
 
 .story-step h3 {
   font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: #fff;
   margin-bottom: 12px;
 }
@@ -1685,7 +1694,7 @@ onUnmounted(() => {
 }
 
 .story-step.on .step-points li::before {
-  background: var(--d-cyan);
+  background: var(--d-accent);
 }
 
 /* ── 역할별 ── */
@@ -1704,7 +1713,7 @@ onUnmounted(() => {
 .role-card {
   position: relative;
   padding: 40px;
-  border-radius: 22px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   background: var(--d-surface);
@@ -1730,10 +1739,10 @@ onUnmounted(() => {
 .role-accent {
   background: linear-gradient(
     160deg,
-    rgba(49, 130, 246, 0.16) 0%,
+    rgba(234, 0, 44, 0.14) 0%,
     rgba(255, 255, 255, 0.03) 55%
   );
-  border-color: rgba(49, 130, 246, 0.28);
+  border-color: rgba(234, 0, 44, 0.3);
 }
 
 .role-tag {
@@ -1741,14 +1750,14 @@ onUnmounted(() => {
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--d-cyan);
+  color: var(--d-accent);
   margin-bottom: 14px;
 }
 
 .role-card h3 {
   font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.4;
   color: #fff;
   margin-bottom: 24px;
@@ -1812,19 +1821,19 @@ onUnmounted(() => {
   border-top: 1px solid var(--d-line);
 }
 
+/* 블롭 대신 SK 브랜드 그라데이션 1px 규칙으로 섹션을 연다 */
 .cta-glow {
   position: absolute;
-  bottom: -320px;
-  left: 50%;
-  width: 900px;
-  height: 560px;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    ellipse at center,
-    rgba(49, 130, 246, 0.26),
-    transparent 62%
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--sk-red),
+    var(--sk-orange) 55%,
+    transparent
   );
-  filter: blur(20px);
 }
 
 .cta-inner {
@@ -1863,10 +1872,27 @@ onUnmounted(() => {
 }
 
 .footer-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   font-size: 15px;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: #fff;
+}
+
+.footer-sk {
+  color: var(--sk-red);
+}
+
+.footer-brand em {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--d-text-3);
 }
 
 .footer-copy {

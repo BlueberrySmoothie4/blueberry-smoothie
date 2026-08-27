@@ -384,10 +384,10 @@ watch(
   color: rgba(255, 255, 255, 0.35);
 }
 .c-cmd {
-  color: #7dd3fc;
+  color: var(--sk-orange);
 }
 .c-str {
-  color: #fcd34d;
+  color: #e8b25f;
 }
 
 .code-note {
