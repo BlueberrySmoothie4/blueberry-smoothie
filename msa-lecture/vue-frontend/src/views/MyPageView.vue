@@ -1,215 +1,234 @@
 <template>
-  <div class="page-wrapper">
-    <AppHeader />
-    <div class="page-layout">
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
+  <div class="app-shell">
+    <AppSideRail />
 
-          <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> API 카탈로그
-          </router-link>
-
-          <router-link
-            v-if="!isInstructor"
-            to="/enrollments"
-            class="sidebar-item"
-          >
-            <span class="si-icon">✅</span> 내 구독 목록
-          </router-link>
-
-          <router-link to="/mypage" class="sidebar-item active">
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
-      <main class="main-content">
-        <!-- 프로필 카드 -->
-        <div class="profile-card fade-in-up">
-          <div class="profile-avatar">{{ auth.user?.name?.charAt(0) || '?' }}</div>
-          <div class="profile-info">
-            <h2 class="profile-name">{{ auth.user?.name || '사용자' }}</h2>
-            <p class="profile-email">{{ auth.user?.email || '-' }}</p>
-            <span class="badge" :class="isInstructor ? 'badge-amber' : 'badge-blue'">
-              {{ isInstructor ? 'API 제공사' : '구매 기업 담당자' }}
+    <main class="shell-main">
+      <div class="shell-content">
+        <!-- 프로필 -->
+        <header class="page-header profile-header">
+          <div class="profile">
+            <span class="profile-avatar">
+              {{ auth.user?.name?.charAt(0) || "?" }}
             </span>
+            <div class="profile-info">
+              <h1 class="profile-name">{{ auth.user?.name || "사용자" }}</h1>
+              <p class="profile-email">{{ auth.user?.email || "-" }}</p>
+            </div>
           </div>
-        </div>
+          <span class="role-badge" :class="isInstructor ? 'provider' : 'buyer'">
+            {{ isInstructor ? "API 제공사" : "구매 기업 담당자" }}
+          </span>
+        </header>
 
-        <!-- 학생 화면 -->
-        <section v-if="!isInstructor" class="recommend-section">
-          <h3 class="section-title">추천 API</h3>
+        <!-- 구매 기업: 추천 -->
+        <section v-if="!isInstructor">
+          <p class="section-label">Recommended</p>
+          <h2 class="section-heading">함께 쓰면 좋은 API</h2>
 
-          <p v-if="recommendMessage" class="recommend-message">
+          <p v-if="recommendMessage" class="recommend-msg">
             {{ recommendMessage }}
           </p>
 
-          <div v-if="recommendLoading" class="loading-row">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
-              <div class="skeleton-thumb"></div>
-              <div class="skeleton-body">
-                <div class="skeleton-line short"></div>
-                <div class="skeleton-line"></div>
-              </div>
+          <div v-if="recommendLoading" class="card-grid">
+            <div v-for="i in 3" :key="i" class="skeleton-card surface">
+              <div class="skeleton-block sk-thumb"></div>
+              <div class="skeleton-block sk-line long"></div>
+              <div class="skeleton-block sk-line medium"></div>
             </div>
           </div>
 
-          <div v-else-if="recommendations.length" class="recommend-grid fade-in">
+          <div v-else-if="recommendations.length" class="card-grid">
             <CourseCard v-for="c in recommendations" :key="c.id" :course="c" />
           </div>
 
-          <p v-else-if="recommendError" class="empty-text">
-            {{ recommendError }}
-          </p>
-
-          <p v-else class="empty-text">
-            아직 추천할 API가 없습니다.
-          </p>
+          <div v-else class="empty-state">
+            <div class="empty-state-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+            </div>
+            <p class="empty-state-title">
+              {{
+                recommendError
+                  ? "추천을 불러오지 못했습니다"
+                  : "아직 추천할 API가 없습니다"
+              }}
+            </p>
+            <p>
+              {{
+                recommendError ||
+                "API를 구독하면 사용 패턴에 맞는 추천이 표시됩니다."
+              }}
+            </p>
+          </div>
         </section>
 
-        <!-- 강사 화면 -->
-        <section v-else class="instructor-section">
-          <div class="section-head">
-            <h3 class="section-title">내가 등록한 API</h3>
-            <span class="section-subtitle">등록한 API와 API별 구독 기업 수를 확인할 수 있습니다.</span>
-          </div>
+        <!-- 제공사: 대시보드 -->
+        <section v-else>
+          <p class="section-label">Dashboard</p>
+          <h2 class="section-heading">내가 등록한 API</h2>
 
-          <div class="summary-cards">
-            <div class="summary-card">
-              <div class="summary-label">등록 API 수</div>
-              <div class="summary-value">{{ myCourses.length }}</div>
+          <div class="kpi-row">
+            <div class="kpi surface">
+              <span class="kpi-label">등록 API 수</span>
+              <span class="kpi-value tabular">{{ myCourses.length }}</span>
             </div>
-            <div class="summary-card">
-              <div class="summary-label">총 구독 기업 수</div>
-              <div class="summary-value">{{ totalEnrollmentCount }}</div>
-            </div>
-          </div>
-
-          <div v-if="instructorLoading" class="loading-row instructor-loading">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
-              <div class="skeleton-thumb"></div>
-              <div class="skeleton-body">
-                <div class="skeleton-line short"></div>
-                <div class="skeleton-line"></div>
-              </div>
+            <div class="kpi surface kpi-accent">
+              <span class="kpi-label">총 구독 기업 수</span>
+              <span class="kpi-value tabular">
+                {{ totalEnrollmentCount.toLocaleString() }}
+              </span>
             </div>
           </div>
 
-          <div v-else-if="myCourses.length" class="instructor-course-list fade-in">
+          <div v-if="instructorLoading" class="api-list">
             <div
+              v-for="i in 2"
+              :key="i"
+              class="skeleton-card surface"
+              style="padding: 24px"
+            >
+              <div class="skeleton-block sk-line long"></div>
+              <div class="skeleton-block sk-line medium"></div>
+            </div>
+          </div>
+
+          <div v-else-if="myCourses.length" class="api-list">
+            <article
               v-for="course in myCourses"
               :key="course.id"
-              class="instructor-course-card"
+              class="api-item surface"
             >
-              <div class="course-card-top">
+              <div class="api-item-head">
                 <div>
-                  <h4 class="course-title">{{ course.title }}</h4>
-                  <p class="course-desc">{{ course.description || '설명이 없습니다.' }}</p>
+                  <h3 class="api-item-title">{{ course.title }}</h3>
+                  <p class="api-item-desc">
+                    {{ course.description || "설명이 없습니다." }}
+                  </p>
                 </div>
                 <span
-                  class="status-badge"
-                  :class="course.status === 'ACTIVE' ? 'status-active' : 'status-inactive'"
+                  class="status-pill"
+                  :class="course.status === 'ACTIVE' ? 'active' : 'inactive'"
                 >
-                  {{ course.status || 'UNKNOWN' }}
+                  <span class="status-dot"></span>
+                  {{ course.status || "UNKNOWN" }}
                 </span>
               </div>
 
-              <div class="course-meta-grid">
-                <div class="meta-box">
-                  <div class="meta-label">카테고리</div>
-                  <div class="meta-value">{{ course.category || '-' }}</div>
+              <dl class="spec-sheet">
+                <div class="spec-row">
+                  <dt>카테고리</dt>
+                  <dd>{{ course.category || "-" }}</dd>
                 </div>
-                <div class="meta-box">
-                  <div class="meta-label">가격</div>
-                  <div class="meta-value">{{ formatPrice(course.price) }}</div>
+                <div class="spec-row">
+                  <dt>월 요금</dt>
+                  <dd class="tabular">{{ formatPrice(course.price) }}</dd>
                 </div>
-                <div class="meta-box">
-                  <div class="meta-label">구독 기업 수</div>
-                  <div class="meta-value">
-                    {{ course.enrollment_count ?? course.enrollmentCount ?? 0 }}개사
-                  </div>
+                <div class="spec-row">
+                  <dt>구독 기업</dt>
+                  <dd class="tabular">
+                    {{
+                      course.enrollment_count ?? course.enrollmentCount ?? 0
+                    }}개사
+                  </dd>
                 </div>
-                <div class="meta-box">
-                  <div class="meta-label">API ID</div>
-                  <div class="meta-value">#{{ course.id }}</div>
+                <div class="spec-row">
+                  <dt>API ID</dt>
+                  <dd class="mono">#{{ course.id }}</dd>
                 </div>
-              </div>
+              </dl>
 
-              <div class="course-card-actions">
-                <router-link :to="`/courses/${course.id}`" class="action-btn action-primary">
-                  API 보기
-                </router-link>
-              </div>
-            </div>
+              <router-link
+                :to="`/courses/${course.id}`"
+                class="btn btn-ghost api-item-btn"
+              >
+                API 보기
+              </router-link>
+            </article>
           </div>
 
-          <p v-else-if="instructorError" class="empty-text">
-            {{ instructorError }}
-          </p>
-
-          <p v-else class="empty-text">
-            아직 등록한 API가 없습니다.
-          </p>
+          <div v-else class="empty-state">
+            <div class="empty-state-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+            </div>
+            <p class="empty-state-title">
+              {{
+                instructorError
+                  ? "API 정보를 불러오지 못했습니다"
+                  : "아직 등록한 API가 없습니다"
+              }}
+            </p>
+            <p>{{ instructorError || "첫 API 상품을 등록해 보세요." }}</p>
+            <router-link
+              v-if="!instructorError"
+              to="/courses/new"
+              class="btn btn-primary empty-action"
+            >
+              API 등록하기
+            </router-link>
+          </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import AppHeader from '@/components/AppHeader.vue'
-import CourseCard from '@/components/CourseCard.vue'
-import { useAuthStore } from '@/store/auth.js'
-import { enrollmentApi } from '@/api/enrollment.js'
-import { courseApi } from '@/api/course.js'
+import { ref, computed, onMounted } from "vue";
+import AppSideRail from "@/components/AppSideRail.vue";
+import CourseCard from "@/components/CourseCard.vue";
+import { useAuthStore } from "@/store/auth.js";
+import { enrollmentApi } from "@/api/enrollment.js";
+import { courseApi } from "@/api/course.js";
 
-const router = useRouter()
-const auth = useAuthStore()
+const auth = useAuthStore();
 
-const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
+const isInstructor = computed(() => auth.user?.role === "INSTRUCTOR");
 
-/* 학생용 */
-const recommendations = ref([])
-const recommendLoading = ref(true)
-const recommendError = ref('')
-const recommendMessage = ref('')
+const recommendations = ref([]);
+const recommendLoading = ref(true);
+const recommendError = ref("");
+const recommendMessage = ref("");
 
-/* 강사용 */
-const myCourses = ref([])
-const instructorLoading = ref(true)
-const instructorError = ref('')
+const myCourses = ref([]);
+const instructorLoading = ref(true);
+const instructorError = ref("");
 
 const totalEnrollmentCount = computed(() =>
   myCourses.value.reduce((sum, course) => {
-    const count = Number(course.enrollment_count ?? course.enrollmentCount ?? 0)
-    return sum + (Number.isNaN(count) ? 0 : count)
-  }, 0)
-)
-
-function handleLogout() {
-  auth.logout()
-  router.push('/')
-}
+    const count = Number(
+      course.enrollment_count ?? course.enrollmentCount ?? 0,
+    );
+    return sum + (Number.isNaN(count) ? 0 : count);
+  }, 0),
+);
 
 function formatPrice(price) {
-  const value = Number(price ?? 0)
-  if (Number.isNaN(value)) return '-'
-  return `${value.toLocaleString()}원`
+  const value = Number(price ?? 0);
+  if (Number.isNaN(value)) return "-";
+  return `₩${value.toLocaleString()}`;
 }
 
-/**
- * course 객체에서 강사 식별자 추출
- */
 function getCourseInstructorId(course) {
   return (
     course.instructorId ??
@@ -218,215 +237,95 @@ function getCourseInstructorId(course) {
     course.teacherId ??
     course.teacher_id ??
     null
-  )
+  );
 }
 
 async function loadStudentRecommendations() {
   try {
-    if (!auth.user) {
-      console.warn('[MyPage] auth.user is missing')
-      recommendError.value = '추천 API를 준비 중입니다.'
-      return
+    if (!auth.user?.id) {
+      recommendError.value = "추천 API를 준비 중입니다.";
+      return;
     }
 
-    if (!auth.user.id) {
-      console.warn('[MyPage] auth.user.id is missing:', auth.user)
-      recommendError.value = '추천 API를 준비 중입니다.'
-      return
-    }
-
-    const res = await enrollmentApi.getRecommendations(auth.user.id)
-    console.log('[MyPage] recommendation response:', res.data)
-
-    const payload = res.data
+    const res = await enrollmentApi.getRecommendations(auth.user.id);
+    const payload = res.data;
 
     if (Array.isArray(payload?.recommendedCourses)) {
-      recommendations.value = payload.recommendedCourses
-      recommendMessage.value = payload.message ?? ''
+      recommendations.value = payload.recommendedCourses;
+      recommendMessage.value = payload.message ?? "";
     } else if (Array.isArray(payload?.data)) {
-      recommendations.value = payload.data
-      recommendMessage.value = payload.message ?? ''
+      recommendations.value = payload.data;
+      recommendMessage.value = payload.message ?? "";
     } else if (Array.isArray(payload)) {
-      recommendations.value = payload
-      recommendMessage.value = ''
-    } else {
-      console.warn('[MyPage] unexpected recommendation response shape:', payload)
-      recommendations.value = []
-      recommendMessage.value = ''
+      recommendations.value = payload;
     }
-  } catch (error) {
-    console.error('[MyPage] failed to load recommendations:', error)
-    recommendError.value = '현재 추천 API를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  } catch {
+    recommendError.value = "잠시 후 다시 시도해 주세요.";
   } finally {
-    recommendLoading.value = false
+    recommendLoading.value = false;
   }
 }
 
 async function loadInstructorCourses() {
   try {
-    if (!auth.user) {
-      console.warn('[MyPage] instructor auth.user is missing')
-      instructorError.value = 'API 정보를 불러오지 못했습니다.'
-      return
+    if (!auth.user?.id) {
+      instructorError.value = "계정 정보를 확인할 수 없습니다.";
+      return;
     }
 
-    if (!auth.user.id) {
-      console.warn('[MyPage] instructor auth.user.id is missing:', auth.user)
-      instructorError.value = 'API 정보를 불러오지 못했습니다.'
-      return
-    }
+    const res = await courseApi.getCourses();
+    const courses = Array.isArray(res.data?.data)
+      ? res.data.data
+      : Array.isArray(res.data)
+        ? res.data
+        : [];
 
-    const res = await courseApi.getCourses()
-    console.log('[MyPage] course list response:', res.data)
-
-    let courses = []
-
-    if (Array.isArray(res.data?.data)) {
-      courses = res.data.data
-    } else if (Array.isArray(res.data)) {
-      courses = res.data
-    } else {
-      console.warn('[MyPage] unexpected course response shape:', res.data)
-    }
-
-    console.log('[MyPage] auth.user =', auth.user)
-    console.log('[MyPage] courses =', courses)
-    console.log('[MyPage] first course =', courses[0])
-
-    courses.forEach(course => {
-      console.log('[MyPage] instructor fields check:', {
-        courseId: course.id,
-        instructorId: course.instructorId,
-        instructor_id: course.instructor_id,
-        instructor: course.instructor,
-        teacherId: course.teacherId,
-        teacher_id: course.teacher_id,
-        rawCourse: course
-      })
-    })
-
-    const instructorId = Number(auth.user.id)
-
-    myCourses.value = courses.filter(course => {
-      const courseInstructorId = Number(getCourseInstructorId(course))
-      return !Number.isNaN(courseInstructorId) && courseInstructorId === instructorId
-    })
-
-    console.log('[MyPage] filtered myCourses =', myCourses.value)
-  } catch (error) {
-    console.error('[MyPage] failed to load instructor courses:', error)
-    instructorError.value = '현재 API 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    const instructorId = Number(auth.user.id);
+    myCourses.value = courses.filter((course) => {
+      const courseInstructorId = Number(getCourseInstructorId(course));
+      return (
+        !Number.isNaN(courseInstructorId) && courseInstructorId === instructorId
+      );
+    });
+  } catch {
+    instructorError.value = "잠시 후 다시 시도해 주세요.";
   } finally {
-    instructorLoading.value = false
+    instructorLoading.value = false;
   }
 }
 
 onMounted(async () => {
   if (isInstructor.value) {
-    recommendLoading.value = false
-    await loadInstructorCourses()
+    recommendLoading.value = false;
+    await loadInstructorCourses();
   } else {
-    instructorLoading.value = false
-    await loadStudentRecommendations()
+    instructorLoading.value = false;
+    await loadStudentRecommendations();
   }
-})
+});
 </script>
 
 <style scoped>
-.page-wrapper {
-  min-height: 100vh;
-  background: var(--color-bg-secondary);
-}
-
-.page-layout {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.sidebar-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  padding: 8px 12px 4px;
-}
-
-.sidebar-item {
+.profile-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  transition: var(--transition);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  text-decoration: none;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.sidebar-item:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-.sidebar-item.active {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.si-icon {
-  font-size: 15px;
-}
-
-.main-content {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.profile-card {
+.profile {
   display: flex;
   align-items: center;
-  gap: 20px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  box-shadow: var(--shadow-sm);
+  gap: 16px;
 }
 
 .profile-avatar {
-  width: 64px;
-  height: 64px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-size: 24px;
+  background: var(--color-text-primary);
+  color: #fff;
+  font-size: 20px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -434,290 +333,200 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .profile-name {
-  font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
 }
 
 .profile-email {
   font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.badge-blue {
-  background: #E7EEF6;
-  color: #2C5C8A;
-}
-
-.badge-amber {
-  background: var(--color-warning-light);
-  color: var(--color-warning);
-}
-
-.section-head {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.section-subtitle {
-  font-size: 13px;
   color: var(--color-text-muted);
+  margin-top: 2px;
 }
 
-.recommend-message {
-  margin-bottom: 14px;
-  font-size: 13px;
+.role-badge {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.role-badge.buyer {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.role-badge.provider {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.recommend-msg {
+  font-size: 14px;
   color: var(--color-text-secondary);
+  margin: -12px 0 20px;
 }
 
-.recommend-grid {
+.card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.loading-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.instructor-loading {
-  margin-bottom: 20px;
+  gap: 14px;
 }
 
 .skeleton-card {
-  background: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.skeleton-thumb {
-  height: 110px;
-  background: linear-gradient(90deg, #EFEBE2 25%, #E4DFD4 50%, #EFEBE2 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.skeleton-body {
-  padding: 14px 16px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #EFEBE2 25%, #E4DFD4 50%, #EFEBE2 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.skeleton-line.short {
-  width: 40%;
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(160px, 220px));
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.summary-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-sm);
-}
-
-.summary-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
+.sk-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   margin-bottom: 8px;
 }
-
-.summary-value {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-text-primary);
-  font-variant-numeric: tabular-nums;
+.sk-line {
+  height: 13px;
+}
+.sk-line.medium {
+  width: 55%;
+}
+.sk-line.long {
+  width: 85%;
 }
 
-.instructor-course-list {
+/* KPI */
+.kpi-row {
   display: grid;
-  gap: 18px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.instructor-course-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
+.kpi {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.course-card-top {
+.kpi-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+}
+
+.kpi-accent {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.kpi-accent .kpi-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.kpi-accent .kpi-value {
+  color: #fff;
+}
+
+/* 등록 API 목록 */
+.api-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.api-item {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head"
+    "spec action";
+  gap: 18px 20px;
+  align-items: end;
+}
+
+.api-item-head {
+  grid-area: head;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
 }
 
-.course-title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 8px;
+.api-item-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: 5px;
 }
 
-.course-desc {
+.api-item-desc {
   font-size: 14px;
   color: var(--color-text-secondary);
-  line-height: 1.5;
-  white-space: pre-line;
+  line-height: 1.55;
 }
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 600;
+.api-item .spec-sheet {
+  grid-area: spec;
+  max-width: 420px;
 }
 
-.status-active {
-  background: var(--color-success-light);
-  color: var(--color-success);
+.api-item-btn {
+  grid-area: action;
 }
 
-.status-inactive {
-  background: #EFEBE2;
-  color: #6B6455;
-}
-
-.course-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.meta-box {
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 14px;
-}
-
-.meta-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  margin-bottom: 6px;
-}
-
-.meta-value {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.course-card-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: var(--transition);
-}
-
-.action-primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.action-primary:hover {
-  opacity: 0.92;
-}
-
-.empty-text {
-  color: var(--color-text-muted);
-  font-size: 14px;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
+.empty-action {
+  margin-top: 20px;
 }
 
 @media (max-width: 992px) {
-  .page-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .recommend-grid,
-  .loading-row,
-  .course-meta-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-cards {
-    grid-template-columns: 1fr 1fr;
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .profile-card {
+  .profile-header {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .course-card-top {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .api-item {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "head"
+      "spec"
+      "action";
+  }
+  .api-item-head {
     flex-direction: column;
   }
-
-  .summary-cards {
-    grid-template-columns: 1fr;
+  .api-item .spec-sheet {
+    max-width: none;
+  }
+  .api-item-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

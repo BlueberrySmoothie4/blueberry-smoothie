@@ -1,130 +1,182 @@
 <template>
-  <router-link :to="`/courses/${course.id}`" class="course-card">
-    <!-- 썸네일 -->
-    <div class="card-thumb" :class="thumbBg">
-      <img v-if="thumbSrc" :src="thumbSrc" :alt="course.title" class="thumb-img" />
-      <div v-else class="thumb-placeholder">{{ course.category?.charAt(0) }}</div>
+  <router-link
+    :to="`/courses/${course.id}`"
+    class="api-card surface surface-hover"
+  >
+    <div class="api-card-head">
+      <div class="api-thumb" :class="thumbBg">
+        <img
+          v-if="thumbSrc"
+          :src="thumbSrc"
+          :alt="course.title"
+          class="thumb-img"
+        />
+        <span v-else class="thumb-placeholder">{{
+          course.category?.charAt(0)
+        }}</span>
+      </div>
+      <span class="badge" :class="badgeClass">{{ course.category }}</span>
     </div>
 
-    <!-- 내용 -->
-    <div class="card-body">
-      <span class="badge" :class="badgeClass">{{ course.category }}</span>
-      <h3 class="card-title">{{ course.title }}</h3>
-      <div class="card-meta">
-        <span class="instructor">{{ course.instructorName }}</span>
-        <span class="price">₩{{ Number(course.price).toLocaleString() }}</span>
-      </div>
-      <div class="card-footer">
-        <span class="enrolled">구독 기업 {{ course.enrollmentCount?.toLocaleString() }}개사</span>
-      </div>
+    <div class="api-body">
+      <h3 class="api-title">{{ course.title }}</h3>
+      <p class="api-provider">{{ course.instructorName }}</p>
+    </div>
+
+    <div class="api-foot">
+      <span class="api-subs">
+        <span class="tabular">{{
+          course.enrollmentCount?.toLocaleString() ?? 0
+        }}</span
+        >개사 구독
+      </span>
+      <span class="api-price">
+        ₩<span class="tabular">{{
+          Number(course.price).toLocaleString()
+        }}</span>
+        <i>/월</i>
+      </span>
     </div>
   </router-link>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
-  course: { type: Object, required: true }
-})
+  course: { type: Object, required: true },
+});
 
 const categoryConfig = {
-  '백엔드':    { bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'spring_boot' },
-  '프론트엔드':{ bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'vue_js' },
-  'DevOps':   { bg: 'thumb-blue',   badge: 'badge-blue',   thumb: 'docker' },
-  '데이터':   { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
-  'AI':       { bg: 'thumb-pink',   badge: 'badge-pink',   thumb: 'generative_ai' },
-}
+  백엔드: { bg: "thumb-teal", badge: "badge-teal", thumb: "spring_boot" },
+  프론트엔드: { bg: "thumb-teal", badge: "badge-teal", thumb: "vue_js" },
+  DevOps: { bg: "thumb-blue", badge: "badge-blue", thumb: "docker" },
+  데이터: { bg: "thumb-purple", badge: "badge-purple", thumb: "python" },
+  AI: { bg: "thumb-pink", badge: "badge-pink", thumb: "generative_ai" },
+};
 
-const config = computed(() => categoryConfig[props.course.category] || { bg: 'thumb-gray', badge: 'badge-gray' })
-const thumbBg = computed(() => config.value.bg)
-const badgeClass = computed(() => config.value.badge)
+const config = computed(
+  () =>
+    categoryConfig[props.course.category] || {
+      bg: "thumb-gray",
+      badge: "badge-gray",
+    },
+);
+const thumbBg = computed(() => config.value.bg);
+const badgeClass = computed(() => config.value.badge);
 
-// 썸네일 이미지 동적 import
 const thumbSrc = computed(() => {
-  const key = props.course.thumbnail || config.value.thumb
-  if (!key) return null
+  const key = props.course.thumbnail || config.value.thumb;
+  if (!key) return null;
   try {
-    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href
+    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href;
   } catch {
-    return null
+    return null;
   }
-})
+});
 </script>
 
 <style scoped>
-.course-card {
+.api-card {
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: var(--transition);
-  cursor: pointer;
+  height: 100%;
+  padding: 22px;
 }
-.course-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border-hover);
+
+.api-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
 }
-.card-thumb {
-  height: 120px;
+
+.api-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
-.thumb-teal   { background: #E1F0EA; }
-.thumb-blue   { background: #E7EEF6; }
-.thumb-amber  { background: #F4ECD2; }
-.thumb-purple { background: #ECE8F4; }
-.thumb-pink   { background: #F5E8E6; }
-.thumb-gray   { background: #EFEBE2; }
+
+.thumb-teal {
+  background: #e6faf5;
+}
+.thumb-blue {
+  background: #e8f3ff;
+}
+.thumb-purple {
+  background: #f3f0ff;
+}
+.thumb-pink {
+  background: #fff0f6;
+}
+.thumb-gray {
+  background: var(--color-bg-secondary);
+}
+
 .thumb-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 16px;
+  padding: 8px;
 }
+
 .thumb-placeholder {
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
   color: var(--color-text-muted);
 }
-.card-body {
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+
+.api-body {
   flex: 1;
 }
-.card-title {
-  font-family: var(--font-display);
-  font-size: 14px;
+
+.api-title {
+  font-size: 16px;
   font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--color-text-primary);
   line-height: 1.4;
+  margin-bottom: 5px;
 }
-.card-meta {
+
+.api-provider {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.api-foot {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
 }
-.instructor {
+
+.api-subs {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.api-price {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.api-price i {
+  font-style: normal;
   font-size: 12px;
-  color: var(--color-text-secondary);
-}
-.price {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-.card-footer {
-  margin-top: 2px;
-}
-.enrolled {
-  font-size: 11px;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 </style>

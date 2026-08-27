@@ -1,558 +1,1732 @@
 <template>
   <div class="landing">
-    <AppHeader />
+    <!-- 스크롤 진행 바 -->
+    <div class="scroll-progress" aria-hidden="true">
+      <i :style="{ transform: `scaleX(${scrollProgress})` }"></i>
+    </div>
 
-    <!-- 히어로 섹션 -->
+    <AppHeader overlay />
+
+    <!-- ── Hero ── -->
     <section class="hero">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-glow" aria-hidden="true"></div>
+
       <div class="hero-inner">
-        <div class="hero-content fade-in-up">
-          <span class="hero-badge">SK AI API 마켓플레이스</span>
-          <h1 class="hero-title">필요한 AI를,<br>바로 연결하세요</h1>
-          <p class="hero-desc">텍스트, 비전, 음성 등 검증된 AI API를 비교하고 구독해 우리 서비스에 바로 붙여보세요. 계약, 결제, Key 발급까지 한 곳에서 끝납니다.</p>
-          <div class="hero-actions">
-            <router-link to="/login" class="btn btn-primary btn-lg">무료로 시작하기</router-link>
-            <router-link to="/courses" class="btn btn-outline btn-lg">API 둘러보기</router-link>
-          </div>
-          <div class="hero-stats">
-            <div class="stat"><span class="stat-num">1,200+</span><span class="stat-label">API</span></div>
-            <div class="stat"><span class="stat-num">340+</span><span class="stat-label">제공사</span></div>
-            <div class="stat"><span class="stat-num">28,000+</span><span class="stat-label">구독 기업</span></div>
+        <div class="hero-copy">
+          <p class="eyebrow enter" style="--d: 0ms">
+            <span class="eyebrow-rule"></span>
+            AI 컴포넌트 원스톱 마켓플레이스
+          </p>
+
+          <h1 class="hero-title enter" style="--d: 80ms">
+            기업이 필요한 AI 기능,<br />
+            <span class="hero-title-dim">한 곳에서 찾아보세요</span>
+          </h1>
+
+          <p class="hero-desc enter" style="--d: 160ms">
+            텍스트·비전·음성 API를 성능과 요금으로 비교하고, 구독 즉시 발급되는
+            Key로 바로 연동하세요.
+          </p>
+
+          <div class="hero-actions enter" style="--d: 240ms">
+            <router-link to="/login" class="cta-solid">
+              무료로 시작하기
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </router-link>
+            <router-link to="/login" class="cta-quiet"
+              >API 카탈로그 둘러보기</router-link
+            >
           </div>
         </div>
 
-        <!-- API 스펙 카드 미리보기 -->
-        <div class="hero-visual fade-in">
-          <div class="spec-stack">
-            <div class="spec-card spec-card-back">
-              <div class="spec-card-top">
-                <span class="badge badge-purple">데이터</span>
-                <span class="spec-price">₩59,000<em>/월</em></span>
-              </div>
-              <p class="spec-title">데이터 인사이트 API</p>
-              <div class="spec-meta"><span>구독 기업 412개사</span></div>
+        <!-- 콘솔 목업 -->
+        <div class="console-wrap enter" style="--d: 320ms">
+          <div
+            class="console"
+            :style="{ transform: `translate3d(0, ${heroParallax}px, 0)` }"
+          >
+            <div class="console-bar">
+              <span class="console-dots"><i></i><i></i><i></i></span>
+              <span class="console-file">subscribe.sh</span>
+              <span class="console-status"
+                ><span class="pulse"></span>200 OK · 82ms</span
+              >
             </div>
-            <div class="spec-card spec-card-front">
-              <div class="spec-card-top">
-                <span class="badge badge-teal">텍스트 / NLP</span>
-                <span class="spec-price">₩89,000<em>/월</em></span>
-              </div>
-              <p class="spec-title">문서 요약 API</p>
-              <div class="spec-meta">
-                <span>구독 기업 1,204개사</span>
-                <span class="spec-live">● 응답 지연 120ms</span>
-              </div>
-              <span class="spec-cta">구독하기 →</span>
-            </div>
+
+            <pre
+              class="console-body"
+            ><span class="c-com"># 필요한 API를 구독하면 Key가 즉시 발급됩니다</span>
+<span class="c-cmd">curl</span> -X POST https://{{ BRAND.apiHost }}/v1/subscriptions \
+  -H <span class="c-str">"Authorization: Bearer sk_live_••••"</span> \
+  -d <span class="c-str">'{ "api_id": "text.summarize.v2" }'</span>
+</pre>
+
+            <div class="console-divider"></div>
+
+            <pre class="console-body console-res">{
+  <span class="c-key">"status"</span>:     <span class="c-ok">"ACTIVE"</span>,
+  <span class="c-key">"api_key"</span>:    <span class="c-str">"nx_live_8f2a…c91"</span>,
+  <span class="c-key">"latency_ms"</span>: <span class="c-num">82</span>
+}</pre>
           </div>
+        </div>
+      </div>
+
+      <!-- 지표 -->
+      <div class="stats" ref="statsEl">
+        <div class="stat" v-for="(s, i) in stats" :key="s.label">
+          <span class="stat-value"
+            >{{ formatStat(i) }}<i>{{ s.unit }}</i></span
+          >
+          <span class="stat-label">{{ s.label }}</span>
         </div>
       </div>
     </section>
 
-    <!-- 카테고리 -->
-    <section class="category-section">
-      <div class="section-inner">
-        <div class="section-header stacked">
-          <h2 class="section-title">카테고리로 바로 찾기</h2>
-          <p class="section-desc">하나씩 붙여보지 않아도, 필요한 분야로 좁혀서 API를 비교하세요.</p>
-        </div>
-        <div class="category-grid">
-          <router-link
-            v-for="cat in categories"
-            :key="cat.label"
-            to="/login"
-            class="category-tile"
-            :class="cat.tile"
-          >
-            <span class="tile-icon">{{ cat.icon }}</span>
-            <span class="tile-label">{{ cat.label }}</span>
-            <span class="tile-desc">{{ cat.desc }}</span>
+    <!-- ── 인기 API ── -->
+    <section class="section catalog">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-label">Catalog</p>
+            <h2 class="section-title">지금 많이 쓰는 API</h2>
+          </div>
+          <router-link to="/login" class="section-link">
+            전체 보기
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </router-link>
         </div>
+
+        <div class="catalog-grid">
+          <div
+            v-for="(api, i) in featuredApis"
+            :key="api.id"
+            class="reveal"
+            :style="{ '--d': `${i * 90}ms` }"
+          >
+            <router-link to="/login" class="api-card">
+              <div class="api-card-head">
+                <div class="api-thumb" :class="api.tone">
+                  <img :src="api.thumbSrc" :alt="api.title" />
+                </div>
+                <span class="api-cat">{{ api.category }}</span>
+              </div>
+
+              <h3 class="api-title">{{ api.title }}</h3>
+              <p class="api-desc">{{ api.desc }}</p>
+
+              <div class="api-foot">
+                <span class="api-subs">{{ api.subs }}개사 구독</span>
+                <span class="api-price">{{ api.price }}<i>/월</i></span>
+              </div>
+            </router-link>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- 인기 API -->
-    <section class="popular-section">
-      <div class="section-inner">
-        <div class="section-header">
-          <h2 class="section-title">인기 API</h2>
-          <router-link to="/login" class="section-link">전체 보기 →</router-link>
-        </div>
-        <div class="course-grid">
-          <div v-for="course in featuredCourses" :key="course.id" class="course-card-landing">
-            <div class="card-thumb" :class="course.thumbBg">
-              <img :src="course.thumbSrc" :alt="course.title" class="thumb-img" />
+    <!-- ── 스크롤 스토리 ── -->
+    <section class="story">
+      <div class="wrap story-head reveal">
+        <p class="section-label">How it works</p>
+        <h2 class="section-title">연동까지 3단계면 충분합니다</h2>
+      </div>
+
+      <div class="wrap story-grid">
+        <!-- 스크롤 중 고정되는 시각 영역 -->
+        <div class="story-visual">
+          <div class="stage">
+            <!-- 01 카탈로그 -->
+            <div class="panel" :class="{ on: activeStep === 0 }">
+              <div class="panel-bar">
+                <span class="panel-title">API 카탈로그</span>
+                <span class="panel-meta">1,248개</span>
+              </div>
+              <div class="panel-chips">
+                <span
+                  v-for="(c, i) in ['텍스트', '비전', '음성', '데이터']"
+                  :key="c"
+                  class="chip"
+                  :class="{ on: i === 0 }"
+                  >{{ c }}</span
+                >
+              </div>
+              <ul class="panel-rows">
+                <li
+                  v-for="(r, i) in catalogRows"
+                  :key="r.name"
+                  :style="{ '--d': `${i * 90}ms` }"
+                >
+                  <span class="row-name">{{ r.name }}</span>
+                  <span class="row-price">{{ r.price }}</span>
+                </li>
+              </ul>
             </div>
-            <div class="card-body">
-              <span class="badge" :class="course.badgeClass">{{ course.category }}</span>
-              <h3 class="card-title">{{ course.title }}</h3>
-              <p class="card-provider">{{ course.instructor }}</p>
-              <div class="card-meta">
-                <span class="subscribers">구독 기업 {{ course.subscribers.toLocaleString() }}개사</span>
-                <span class="price">{{ course.price }}</span>
+
+            <!-- 02 결제 -->
+            <div class="panel" :class="{ on: activeStep === 1 }">
+              <div class="panel-bar">
+                <span class="panel-title">구독 결제</span>
+                <span class="panel-meta">crd_8f2a</span>
+              </div>
+              <div class="pay">
+                <div class="pay-row">
+                  <span>문서 요약 API · 월 구독</span>
+                  <b>₩89,000</b>
+                </div>
+                <div class="pay-row dim">
+                  <span>보유 크레딧</span>
+                  <b>₩1,200,000</b>
+                </div>
+                <div class="pay-bar">
+                  <i :class="{ on: activeStep === 1 }"></i>
+                </div>
+                <div class="pay-row total">
+                  <span>결제 후 잔액</span>
+                  <b>₩1,111,000</b>
+                </div>
+                <div class="pay-done">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  결제 완료 · 구독 상태 ACTIVE
+                </div>
               </div>
             </div>
+
+            <!-- 03 Key 발급 -->
+            <div class="panel" :class="{ on: activeStep === 2 }">
+              <div class="panel-bar">
+                <span class="panel-title">API Key</span>
+                <span class="panel-meta ok"
+                  ><span class="pulse"></span>ACTIVE</span
+                >
+              </div>
+              <div class="keybox">
+                <span class="key-label">발급된 Key</span>
+                <code class="key-value">nx_live_8f2a··········c91</code>
+              </div>
+              <pre
+                class="panel-code"
+              ><span class="c-cmd">curl</span> https://{{ BRAND.apiHost }}/v1/summarize \
+  -H <span class="c-str">"X-API-Key: nx_live_8f2a…c91"</span>
+
+{ <span class="c-key">"summary"</span>: <span class="c-str">"3분기 매출은 전분기 대비…"</span> }</pre>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- 이용 흐름 -->
-    <section class="steps-section">
-      <div class="section-inner">
-        <h2 class="section-title center">이렇게 연결됩니다</h2>
-        <div class="steps-grid">
-          <div class="step-card" v-for="s in steps" :key="s.no">
-            <span class="step-no">{{ s.no }}</span>
-            <h3 class="step-title">{{ s.title }}</h3>
-            <p class="step-desc">{{ s.desc }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 두 페르소나 -->
-    <section class="persona-section">
-      <div class="section-inner">
-        <div class="persona-grid">
-          <div class="persona-card">
-            <span class="persona-eyebrow">구매 기업 담당자라면</span>
-            <h3 class="persona-title">필요한 AI를 지금 바로 연동하세요</h3>
-            <ul class="persona-list">
-              <li>카테고리 · 가격 · 제약으로 API 비교</li>
-              <li>크레딧 결제 한 번으로 구독 신청</li>
-              <li>구독 즉시 API Key 발급</li>
+        <!-- 스크롤되는 설명 영역 -->
+        <ol class="story-steps">
+          <li
+            v-for="(s, i) in steps"
+            :key="s.title"
+            class="story-step"
+            :class="{ on: activeStep === i }"
+            :data-step="i"
+            ref="stepEls"
+          >
+            <span class="step-num">{{ String(i + 1).padStart(2, "0") }}</span>
+            <h3>{{ s.title }}</h3>
+            <p>{{ s.desc }}</p>
+            <ul class="step-points">
+              <li v-for="p in s.points" :key="p">{{ p }}</li>
             </ul>
-            <router-link to="/login" class="btn btn-primary">API 둘러보기</router-link>
-          </div>
-          <div class="persona-card persona-card-alt">
-            <span class="persona-eyebrow">API 제공사라면</span>
-            <h3 class="persona-title">우리 모델을 B2B 시장에 올리세요</h3>
-            <ul class="persona-list">
-              <li>카테고리 · 요금 · 스펙으로 상품 등록</li>
-              <li>구독 기업 수와 트래픽을 대시보드로 확인</li>
-              <li>영업 조직 없이 판로 확보</li>
-            </ul>
-            <router-link to="/login" class="btn btn-outline btn-alt">제공사로 시작하기</router-link>
-          </div>
-        </div>
+          </li>
+        </ol>
       </div>
     </section>
 
-    <!-- CTA -->
-    <section class="cta-section">
-      <div class="cta-inner">
-        <h2>지금 바로 시작하세요</h2>
-        <p>수천 개 기업이 APINexus와 함께 AI를 도입하고 있습니다.</p>
-        <router-link to="/login" class="btn btn-primary btn-lg">무료로 시작하기</router-link>
+    <!-- ── 역할별 ── -->
+    <section class="section roles">
+      <div class="wrap roles-grid">
+        <article class="role-card reveal">
+          <p class="role-tag">구매 기업</p>
+          <h3>필요한 기능만 골라 씁니다</h3>
+          <ul>
+            <li v-for="t in buyerPoints" :key="t">{{ t }}</li>
+          </ul>
+          <router-link to="/login" class="role-link">
+            구매 기업으로 시작
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </router-link>
+        </article>
+
+        <article class="role-card role-accent reveal" style="--d: 100ms">
+          <p class="role-tag">API 제공사</p>
+          <h3>만든 모델을 매출로 연결합니다</h3>
+          <ul>
+            <li v-for="t in providerPoints" :key="t">{{ t }}</li>
+          </ul>
+          <router-link to="/login" class="role-link">
+            제공사로 시작
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </router-link>
+        </article>
       </div>
     </section>
 
-    <!-- 푸터 -->
+    <!-- ── CTA ── -->
+    <section class="cta-band">
+      <div class="cta-glow" aria-hidden="true"></div>
+      <div class="wrap cta-inner reveal">
+        <h2>오늘 바로 첫 API를 붙여보세요</h2>
+        <p>가입은 무료이고, 구독한 만큼만 크레딧이 차감됩니다.</p>
+        <router-link to="/login" class="cta-solid cta-solid-light">
+          무료로 시작하기
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </router-link>
+      </div>
+    </section>
+
     <footer class="footer">
-      <div class="footer-inner">
-        <div class="footer-logo">
-          <img src="@/assets/images/logo/main_logo.png" alt="APINexus" />
-          <span>APINexus</span>
-        </div>
-        <p class="footer-copy">© 2026 APINexus. All rights reserved.</p>
+      <div class="wrap footer-inner">
+        <span class="footer-brand">{{ BRAND.name }}</span>
+        <p class="footer-copy">© 2026 {{ BRAND.name }}. All rights reserved.</p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup>
-import AppHeader from '@/components/AppHeader.vue'
+import { ref, onMounted, onUnmounted } from "vue";
+import AppHeader from "@/components/AppHeader.vue";
+import { BRAND } from "@/config/brand.js";
 
-import springImg   from '@/assets/images/courses/spring_boot.png'
-import vueImg      from '@/assets/images/courses/vue_js.png'
-import k8sImg      from '@/assets/images/courses/kubernetes.png'
-import dockerImg   from '@/assets/images/courses/docker.png'
-import pythonImg   from '@/assets/images/courses/python.png'
-import genaiImg    from '@/assets/images/courses/generative_ai.png'
+import springImg from "@/assets/images/courses/spring_boot.png";
+import vueImg from "@/assets/images/courses/vue_js.png";
+import genaiImg from "@/assets/images/courses/generative_ai.png";
 
-const featuredCourses = [
-  { id:1, title:'문서 요약 API',          category:'텍스트/NLP', instructor:'브라이트AI',   price:'₩89,000', subscribers:1204, thumbSrc: springImg, thumbBg:'thumb-teal',   badgeClass:'badge-teal'   },
-  { id:2, title:'제품 이미지 인식 API',    category:'비전',      instructor:'뷰테크',       price:'₩69,000', subscribers:856,  thumbSrc: vueImg,    thumbBg:'thumb-teal',   badgeClass:'badge-teal'   },
-  { id:3, title:'대규모 추론 인프라 API',  category:'인프라',    instructor:'클러스터랩',    price:'₩99,000', subscribers:203,  thumbSrc: k8sImg,    thumbBg:'thumb-blue',   badgeClass:'badge-blue'   },
-  { id:4, title:'경량 서빙 API',           category:'인프라',    instructor:'컨테이너웍스',  price:'₩79,000', subscribers:377,  thumbSrc: dockerImg, thumbBg:'thumb-blue',   badgeClass:'badge-blue'   },
-  { id:5, title:'데이터 인사이트 API',     category:'데이터',    instructor:'파이런',       price:'₩59,000', subscribers:412,  thumbSrc: pythonImg, thumbBg:'thumb-purple', badgeClass:'badge-purple' },
-  { id:6, title:'생성형 AI 카피라이팅 API',category:'생성형AI',  instructor:'제너에이아이', price:'₩75,000', subscribers:689,  thumbSrc: genaiImg,  thumbBg:'thumb-pink',   badgeClass:'badge-pink'   },
-]
+const stats = [
+  { target: 1248, decimals: 0, unit: "", label: "등록된 API" },
+  { target: 340, decimals: 0, unit: "", label: "API 제공사" },
+  { target: 82, decimals: 0, unit: "ms", label: "평균 응답 속도" },
+  { target: 99.98, decimals: 2, unit: "%", label: "게이트웨이 가동률" },
+];
 
-const categories = [
-  { icon: '📝', label: '텍스트 / NLP', desc: '요약, 번역, 문서 분석', tile: 'tile-teal' },
-  { icon: '👁️', label: '비전',        desc: '이미지 인식, OCR',    tile: 'tile-blue' },
-  { icon: '🎙️', label: '음성',        desc: '음성 인식, 합성',     tile: 'tile-purple' },
-  { icon: '📈', label: '데이터',       desc: '분석, 예측 모델',     tile: 'tile-pink' },
-  { icon: '✨', label: '생성형 AI',    desc: '카피, 이미지 생성',   tile: 'tile-amber' },
-  { icon: '🧱', label: '인프라',       desc: '추론 서빙, 오케스트레이션', tile: 'tile-gray' },
-]
+const featuredApis = [
+  {
+    id: 1,
+    title: "문서 요약 API",
+    category: "텍스트/NLP",
+    desc: "계약서·리포트를 핵심 문단으로 압축합니다.",
+    subs: "1,204",
+    price: "₩89,000",
+    thumbSrc: springImg,
+    tone: "tone-blue",
+  },
+  {
+    id: 2,
+    title: "제품 이미지 인식 API",
+    category: "비전",
+    desc: "상품 사진에서 카테고리와 속성을 추출합니다.",
+    subs: "862",
+    price: "₩69,000",
+    thumbSrc: vueImg,
+    tone: "tone-teal",
+  },
+  {
+    id: 3,
+    title: "생성형 카피라이팅 API",
+    category: "생성형 AI",
+    desc: "브랜드 톤에 맞춘 마케팅 문구를 생성합니다.",
+    subs: "733",
+    price: "₩75,000",
+    thumbSrc: genaiImg,
+    tone: "tone-violet",
+  },
+];
+
+const catalogRows = [
+  { name: "문서 요약 API", price: "₩89,000" },
+  { name: "감정 분석 API", price: "₩54,000" },
+  { name: "문서 분류 API", price: "₩61,000" },
+  { name: "개체명 추출 API", price: "₩47,000" },
+];
 
 const steps = [
-  { no: '01', title: '비교하기',   desc: '카테고리 · 성능 · 가격을 비교해 우리 데이터에 맞는 API를 고릅니다.' },
-  { no: '02', title: '구독 신청',  desc: '크레딧으로 결제하면 구독 신청이 바로 처리됩니다.' },
-  { no: '03', title: 'Key 발급',  desc: '결제가 완료되면 API Key가 즉시 발급됩니다.' },
-  { no: '04', title: '연동하기',   desc: '발급받은 Key로 우리 서비스에 바로 연동합니다.' },
-]
+  {
+    title: "카탈로그에서 비교",
+    desc: "카테고리·요금·구독 기업 수를 나란히 놓고 필요한 API를 고릅니다.",
+    points: [
+      "텍스트·비전·음성·데이터 분류",
+      "요금과 인기도를 한 화면에서 확인",
+    ],
+  },
+  {
+    title: "크레딧으로 구독 결제",
+    desc: "별도 계약 없이 보유 크레딧을 차감해 구독을 시작합니다.",
+    points: ["결제와 구독 신청이 한 번에 처리", "기업별 사용 내역 자동 기록"],
+  },
+  {
+    title: "발급된 Key로 호출",
+    desc: "구독이 활성화되면 API Key가 바로 발급돼 그대로 연동하면 됩니다.",
+    points: [
+      "구독 상태가 ACTIVE가 되는 즉시 발급",
+      "내 구독 목록에서 언제든 확인",
+    ],
+  },
+];
+
+const buyerPoints = [
+  "카테고리별 스펙·요금 비교",
+  "사용 패턴 기반 추천 API",
+  "구독 현황과 크레딧 사용 내역 확인",
+];
+
+const providerPoints = [
+  "카테고리·요금·스펙을 지정해 상품 등록",
+  "구독 기업 수를 인기도 지표로 확인",
+  "정산까지 이어지는 결제 파이프라인",
+];
+
+const reduceMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ── 스크롤 진행도 + 히어로 패럴랙스 ── */
+const scrollProgress = ref(0);
+const heroParallax = ref(0);
+let ticking = false;
+
+function readScroll() {
+  const doc = document.documentElement;
+  const max = doc.scrollHeight - window.innerHeight;
+  scrollProgress.value = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
+
+  if (!reduceMotion) {
+    heroParallax.value = Math.min(window.scrollY * 0.08, 48);
+  }
+  ticking = false;
+}
+
+function onScroll() {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(readScroll);
+}
+
+/* ── 지표 카운트업 ── */
+const counts = ref(stats.map(() => 0));
+const statsEl = ref(null);
+
+function formatStat(i) {
+  const { decimals } = stats[i];
+  return counts.value[i].toLocaleString("ko-KR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+function runCountUp() {
+  if (reduceMotion) {
+    counts.value = stats.map((s) => s.target);
+    return;
+  }
+
+  const duration = 1400;
+  const start = performance.now();
+
+  const tick = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    counts.value = stats.map((s) => s.target * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  };
+
+  requestAnimationFrame(tick);
+}
+
+/* ── 스크롤 스토리 활성 단계 ── */
+const activeStep = ref(0);
+const stepEls = ref([]);
+
+let revealObserver = null;
+let statsObserver = null;
+let stepObserver = null;
+
+onMounted(() => {
+  readScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+
+  const revealTargets = document.querySelectorAll(".reveal");
+
+  if (!("IntersectionObserver" in window)) {
+    revealTargets.forEach((el) => el.classList.add("in"));
+    runCountUp();
+    return;
+  }
+
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in");
+        revealObserver.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.15, rootMargin: "0px 0px -60px 0px" },
+  );
+  revealTargets.forEach((el) => revealObserver.observe(el));
+
+  statsObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return;
+      runCountUp();
+      statsObserver.disconnect();
+    },
+    { threshold: 0.4 },
+  );
+  if (statsEl.value) statsObserver.observe(statsEl.value);
+
+  // 화면 중앙에 걸린 단계를 활성으로 표시
+  stepObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        activeStep.value = Number(entry.target.dataset.step);
+      });
+    },
+    { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+  );
+  if (Array.isArray(stepEls.value)) {
+    stepEls.value.forEach((el) => el && stepObserver.observe(el));
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("resize", onScroll);
+  revealObserver?.disconnect();
+  statsObserver?.disconnect();
+  stepObserver?.disconnect();
+});
 </script>
 
 <style scoped>
-.landing { background: var(--color-bg-secondary); }
+.landing {
+  /* 다크 팔레트 */
+  --d-bg: #0a0b0d;
+  --d-bg-alt: #101217;
+  --d-line: rgba(255, 255, 255, 0.09);
+  --d-line-2: rgba(255, 255, 255, 0.16);
+  --d-surface: rgba(255, 255, 255, 0.035);
+  --d-surface-2: rgba(255, 255, 255, 0.06);
+  --d-text: #ffffff;
+  --d-text-2: rgba(255, 255, 255, 0.58);
+  --d-text-3: rgba(255, 255, 255, 0.4);
+  --d-cyan: #7dd3fc;
 
-/* 히어로 */
-.hero {
-  background: linear-gradient(135deg, #FBF6EE 0%, #F6EBDA 50%, #FAF3E7 100%);
-  border-bottom: 1px solid var(--color-border);
-  padding: 80px 0 96px;
+  background: var(--d-bg);
+  color: var(--d-text);
+  letter-spacing: -0.01em;
 }
-.hero-inner {
-  max-width: 1200px;
+
+.wrap {
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 0 24px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 48px;
-  align-items: center;
+  padding: 0 28px;
 }
-.hero-badge {
-  display: inline-block;
-  padding: 5px 14px;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-.hero-title {
-  font-family: var(--font-display);
-  font-size: 42px;
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.5px;
-  color: var(--color-text-primary);
-  margin-bottom: 16px;
-}
-.hero-desc {
-  font-size: 16px;
-  color: var(--color-text-secondary);
-  line-height: 1.7;
-  max-width: 460px;
-  margin-bottom: 28px;
-}
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 40px;
-}
-.btn-lg { padding: 12px 28px; font-size: 15px; }
-.hero-stats {
-  display: flex;
-  gap: 36px;
-}
-.stat { display: flex; flex-direction: column; gap: 2px; }
-.stat-num { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--color-primary); font-variant-numeric: tabular-nums; }
-.stat-label { font-size: 12px; color: var(--color-text-secondary); }
 
-/* 히어로 스펙 카드 미리보기 */
-.hero-visual {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 300px;
-}
-.spec-stack {
-  position: relative;
-  width: 260px;
-  height: 220px;
-}
-.spec-card {
-  position: absolute;
-  left: 0;
-  width: 260px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  box-shadow: var(--shadow-lg);
-}
-.spec-card-back {
+/* ── 스크롤 진행 바 ── */
+.scroll-progress {
+  position: fixed;
   top: 0;
-  transform: rotate(-6deg);
-  opacity: 0.85;
-  filter: saturate(0.9);
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
 }
-.spec-card-front {
-  top: 46px;
-  transform: rotate(3deg);
+
+.scroll-progress i {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
 }
-.spec-card-top {
+
+/* ── 등장 애니메이션 ── */
+.enter {
+  animation: enter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--d, 0ms);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 96px 0 0;
+  margin-top: -64px;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 90% 55% at 50% 0%,
+    #000 30%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 90% 55% at 50% 0%,
+    #000 30%,
+    transparent 100%
+  );
+}
+
+.hero-glow {
+  position: absolute;
+  top: -280px;
+  left: 50%;
+  width: 1000px;
+  height: 620px;
+  transform: translateX(-52%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(49, 130, 246, 0.22),
+    transparent 62%
+  );
+  filter: blur(20px);
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 72px 28px 80px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 56px;
+  align-items: center;
+}
+
+.eyebrow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.spec-price {
+  gap: 12px;
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  font-variant-numeric: tabular-nums;
-}
-.spec-price em { font-style: normal; color: var(--color-text-muted); font-weight: 500; }
-.spec-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin-bottom: 8px;
-}
-.spec-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 11.5px;
-  color: var(--color-text-secondary);
-}
-.spec-live { color: var(--color-success); font-family: var(--font-mono); }
-.spec-cta {
-  display: inline-block;
-  margin-top: 14px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-
-/* 카테고리 */
-.category-section { padding: 56px 0; background: var(--color-bg-primary); }
-.section-header.stacked {
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 28px;
-}
-.section-desc { font-size: 14px; color: var(--color-text-secondary); margin-top: 6px; }
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-}
-.category-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 18px 16px;
-  border-radius: var(--radius-lg);
-  border: 1px solid transparent;
-  transition: var(--transition);
-}
-.category-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-.tile-icon { font-size: 22px; margin-bottom: 6px; }
-.tile-label { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
-.tile-desc { font-size: 12px; color: var(--color-text-secondary); }
-.tile-teal   { background: #E1F0EA; }
-.tile-blue   { background: #E7EEF6; }
-.tile-purple { background: #ECE8F4; }
-.tile-pink   { background: #F5E8E6; }
-.tile-amber  { background: #F4ECD2; }
-.tile-gray   { background: #EFEBE2; }
-
-/* 인기 API */
-.popular-section { padding: 64px 0; }
-.section-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 24px;
 }
-.section-title { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--color-text-primary); }
-.section-title.center { text-align: center; margin-bottom: 40px; }
-.section-link { font-size: 14px; color: var(--color-primary); font-weight: 500; }
-.section-link:hover { text-decoration: underline; }
 
-.course-grid {
+.eyebrow-rule {
+  width: 28px;
+  height: 1px;
+  background: var(--d-line-2);
+}
+
+.hero-title {
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1.24;
+  letter-spacing: -0.04em;
+  color: var(--d-text);
+  margin-bottom: 22px;
+}
+
+.hero-title-dim {
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.hero-desc {
+  font-size: 17px;
+  line-height: 1.72;
+  color: var(--d-text-2);
+  max-width: 30em;
+  margin-bottom: 36px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cta-solid {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 26px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--d-bg);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.cta-solid svg {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.2s ease;
+}
+
+.cta-solid:hover {
+  transform: translateY(-1px);
+}
+.cta-solid:hover svg {
+  transform: translateX(3px);
+}
+
+.cta-quiet {
+  display: inline-flex;
+  align-items: center;
+  padding: 15px 22px;
+  border-radius: 12px;
+  border: 1px solid var(--d-line-2);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.cta-quiet:hover {
+  background: var(--d-surface-2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* 콘솔 */
+.console-wrap {
+  perspective: 1000px;
+}
+
+.console {
+  border-radius: 16px;
+  background: rgba(20, 22, 26, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  will-change: transform;
+}
+
+.console-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.console-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.console-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.console-file {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--d-text-3);
+}
+
+.console-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #4ade80;
+}
+
+.pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 2.4s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(74, 222, 128, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+.console-body {
+  padding: 18px 20px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.console-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: 0 20px;
+}
+
+.console-res {
+  color: var(--d-text-2);
+}
+
+.c-com {
+  color: rgba(255, 255, 255, 0.32);
+}
+.c-cmd {
+  color: var(--d-cyan);
+}
+.c-str {
+  color: #fcd34d;
+}
+.c-key {
+  color: #a5b4fc;
+}
+.c-num {
+  color: #f0abfc;
+}
+.c-ok {
+  color: #4ade80;
+}
+
+/* 지표 */
+.stats {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--d-line);
+}
+
+.stat {
+  padding: 30px 4px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--d-line);
+  padding-left: 28px;
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 27px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.stat-value i {
+  font-style: normal;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-left: 2px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--d-text-3);
+}
+
+/* ── 공통 섹션 ── */
+.section {
+  padding: 104px 0;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-cyan);
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--d-text);
+  line-height: 1.35;
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--d-text-3);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.section-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.section-link:hover {
+  color: #fff;
+}
+
+/* ── 카탈로그 ── */
+.catalog {
+  background: var(--d-bg-alt);
+  border-top: 1px solid var(--d-line);
+  border-bottom: 1px solid var(--d-line);
+}
+
+.catalog-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
-.course-card-landing {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: var(--transition);
+
+.api-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 26px;
+  border-radius: 18px;
+  border: 1px solid var(--d-line);
+  background: var(--d-surface);
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.25s ease,
+    border-color 0.25s ease;
 }
-.course-card-landing:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
+
+.api-card:hover {
+  transform: translateY(-4px);
+  background: var(--d-surface-2);
+  border-color: var(--d-line-2);
 }
-.card-thumb {
-  height: 110px;
+
+.api-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.api-thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
-.thumb-teal   { background: #E1F0EA; }
-.thumb-blue   { background: #E7EEF6; }
-.thumb-purple { background: #ECE8F4; }
-.thumb-pink   { background: #F5E8E6; }
-.thumb-img { width: 100%; height: 100%; object-fit: contain; padding: 14px; }
-.card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
-.card-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-text-primary); line-height: 1.4; }
-.card-provider { font-size: 12px; color: var(--color-text-secondary); }
-.card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--color-border); }
-.subscribers { font-size: 11.5px; color: var(--color-text-muted); }
-.price { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--color-primary); }
 
-/* 이용 흐름 */
-.steps-section { padding: 64px 0; background: var(--color-bg-primary); }
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+.api-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 9px;
 }
-.step-card {
-  padding: 24px 22px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+
+.tone-blue {
+  background: #ebf3ff;
 }
-.step-no {
-  display: block;
+.tone-teal {
+  background: #e6faf5;
+}
+.tone-violet {
+  background: #f1eeff;
+}
+
+.api-cat {
   font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--d-text-3);
+  text-transform: uppercase;
+}
+
+.api-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--d-text);
+  margin-bottom: 7px;
+}
+
+.api-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--d-text-2);
+  flex: 1;
+  margin-bottom: 22px;
+}
+
+.api-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 18px;
+  border-top: 1px solid var(--d-line);
+}
+
+.api-subs {
+  font-size: 12.5px;
+  color: var(--d-text-3);
+}
+
+.api-price {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.api-price i {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--d-text-3);
+}
+
+/* ── 스크롤 스토리 ── */
+.story {
+  padding: 112px 0 0;
+}
+
+.story-head {
+  margin-bottom: 8px;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 64px;
+}
+
+/* 그리드 아이템은 늘어나고 내부 stage가 고정된다 */
+.story-visual {
+  position: relative;
+}
+
+.stage {
+  position: sticky;
+  top: 96px;
+  height: 420px;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-line);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(16px) scale(0.985);
+  pointer-events: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panel.on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--d-line);
+}
+
+.panel-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.panel-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--d-text-3);
+}
+
+.panel-meta.ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #4ade80;
+}
+
+/* 01 카탈로그 */
+.panel-chips {
+  display: flex;
+  gap: 7px;
+  padding: 16px 18px 4px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.chip.on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.panel-rows {
+  list-style: none;
+  padding: 8px 18px 18px;
+}
+
+.panel-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+}
+
+.panel.on .panel-rows li {
+  animation: rowIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d);
+}
+
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.row-name {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.row-price {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 02 결제 */
+.pay {
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.pay-row b {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-row.dim,
+.pay-row.dim b {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.pay-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.pay-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3182f6, #7dd3fc);
+  transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+.pay-bar i.on {
+  width: 92.6%;
+}
+
+.pay-row.total {
+  padding-top: 14px;
+  border-top: 1px solid var(--d-line);
+  font-weight: 600;
+}
+
+.pay-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.22);
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-primary);
-  margin-bottom: 10px;
+  color: #4ade80;
 }
-.step-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--color-text-primary); }
-.step-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
 
-/* 두 페르소나 */
-.persona-section { padding: 64px 0; }
-.persona-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.pay-done svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
-.persona-card {
-  padding: 32px;
-  border-radius: var(--radius-xl);
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+
+/* 03 Key */
+.keybox {
+  margin: 18px 18px 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px dashed var(--d-line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
-.persona-eyebrow {
-  display: inline-block;
+
+.key-label {
+  font-size: 11.5px;
+  color: var(--d-text-3);
+}
+
+.key-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #fcd34d;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+
+.panel-code {
+  margin: 16px 18px 18px;
+  font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 600;
-  color: var(--color-primary);
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
-.persona-title {
-  font-family: var(--font-display);
-  font-size: 21px;
+
+/* 설명 영역 */
+.story-steps {
+  list-style: none;
+}
+
+.story-step {
+  min-height: 74vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 0 24px 26px;
+  border-left: 2px solid var(--d-line);
+  opacity: 0.32;
+  transition:
+    opacity 0.45s ease,
+    border-color 0.45s ease;
+}
+
+.story-step.on {
+  opacity: 1;
+  border-left-color: var(--color-primary);
+}
+
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--d-cyan);
+  margin-bottom: 14px;
+}
+
+.story-step h3 {
+  font-size: 26px;
   font-weight: 800;
-  line-height: 1.35;
-  margin-bottom: 18px;
-  color: var(--color-text-primary);
+  letter-spacing: -0.035em;
+  color: #fff;
+  margin-bottom: 12px;
 }
-.persona-list {
+
+.story-step > p {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--d-text-2);
+  margin-bottom: 20px;
+}
+
+.step-points {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 26px;
+  gap: 9px;
 }
-.persona-list li {
-  font-size: 13.5px;
-  color: var(--color-text-secondary);
-  padding-left: 16px;
+
+.step-points li {
   position: relative;
+  padding-left: 18px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
 }
-.persona-list li::before {
-  content: '';
+
+.step-points li::before {
+  content: "";
   position: absolute;
   left: 0;
-  top: 7px;
-  width: 6px;
-  height: 6px;
+  top: 9px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: rgba(255, 255, 255, 0.3);
 }
-.persona-card-alt {
-  background: linear-gradient(160deg, #201C17 0%, #4A3419 55%, #A34E14 100%);
-  border-color: transparent;
+
+.story-step.on .step-points li::before {
+  background: var(--d-cyan);
 }
-.persona-card-alt .persona-eyebrow { color: #F0D3AE; }
-.persona-card-alt .persona-title { color: #fff; }
-.persona-card-alt .persona-list li { color: rgba(255,255,255,0.75); }
-.persona-card-alt .persona-list li::before { background: #F0D3AE; }
-.btn-alt {
-  background: transparent;
+
+/* ── 역할별 ── */
+.roles {
+  padding-top: 104px;
+  background: var(--d-bg-alt);
+  border-top: 1px solid var(--d-line);
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.role-card {
+  padding: 40px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  background: var(--d-surface);
+  border: 1px solid var(--d-line);
+}
+
+.role-accent {
+  background: linear-gradient(
+    160deg,
+    rgba(49, 130, 246, 0.16) 0%,
+    rgba(255, 255, 255, 0.03) 55%
+  );
+  border-color: rgba(49, 130, 246, 0.28);
+}
+
+.role-tag {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-cyan);
+  margin-bottom: 14px;
+}
+
+.role-card h3 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.4;
   color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.55);
+  margin-bottom: 24px;
 }
-.btn-alt:hover { background: rgba(255,255,255,0.12); }
 
-/* CTA */
-.cta-section {
-  padding: 80px 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+.role-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  margin-bottom: 30px;
+}
+
+.role-card li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--d-text-2);
+}
+
+.role-card li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.role-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  transition: var(--transition);
+}
+
+.role-link svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.role-link:hover svg {
+  transform: translateX(3px);
+}
+
+/* ── CTA ── */
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  padding: 108px 0;
   text-align: center;
+  border-top: 1px solid var(--d-line);
 }
-.cta-inner { max-width: 600px; margin: 0 auto; padding: 0 24px; }
-.cta-inner h2 { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 12px; }
-.cta-inner p { font-size: 16px; color: rgba(255,255,255,0.8); margin-bottom: 32px; }
-.cta-inner .btn-primary {
-  background: #fff;
-  color: var(--color-primary);
-  border-color: #fff;
-  font-weight: 600;
-}
-.cta-inner .btn-primary:hover { background: var(--color-primary-light); }
 
-/* 푸터 */
-.footer {
-  background: var(--color-text-primary);
-  padding: 32px 0;
+.cta-glow {
+  position: absolute;
+  bottom: -320px;
+  left: 50%;
+  width: 900px;
+  height: 560px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(49, 130, 246, 0.26),
+    transparent 62%
+  );
+  filter: blur(20px);
 }
+
+.cta-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-inner h2 {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.cta-inner p {
+  font-size: 16px;
+  color: var(--d-text-2);
+  margin-bottom: 32px;
+}
+
+.cta-solid-light {
+  box-shadow: 0 12px 36px -12px rgba(255, 255, 255, 0.35);
+}
+
+/* ── Footer ── */
+.footer {
+  padding: 34px 0;
+  border-top: 1px solid var(--d-line);
+}
+
 .footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #fff;
-  font-family: var(--font-display);
+
+.footer-brand {
   font-size: 15px;
-  font-weight: 700;
-}
-.footer-logo img { width: 28px; height: 28px; border-radius: 6px; }
-.footer-copy { font-size: 13px; color: rgba(255,255,255,0.5); }
-
-@media (max-width: 992px) {
-  .hero-inner { grid-template-columns: 1fr; }
-  .hero-visual { width: 100%; justify-content: flex-start; margin-top: 24px; }
-  .category-grid { grid-template-columns: repeat(3, 1fr); }
-  .course-grid { grid-template-columns: repeat(2, 1fr); }
-  .steps-grid { grid-template-columns: repeat(2, 1fr); }
-  .persona-grid { grid-template-columns: 1fr; }
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #fff;
 }
 
-@media (max-width: 640px) {
-  .category-grid { grid-template-columns: repeat(2, 1fr); }
-  .course-grid { grid-template-columns: 1fr; }
-  .steps-grid { grid-template-columns: 1fr; }
+.footer-copy {
+  font-size: 13px;
+  color: var(--d-text-3);
+}
+
+/* ── 반응형 ── */
+@media (max-width: 1000px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-bottom: 64px;
+  }
+  .hero-title {
+    font-size: 44px;
+  }
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 모바일에서는 블록 흐름으로 두고 시각 영역 자체를 고정 */
+  .story-grid {
+    display: block;
+  }
+  .story-visual {
+    position: sticky;
+    top: 76px;
+    height: 320px;
+    z-index: 2;
+    margin-bottom: 8px;
+  }
+  .stage {
+    position: relative;
+    top: auto;
+    height: 100%;
+  }
+  .story-steps {
+    position: relative;
+    z-index: 1;
+  }
+  .story-step {
+    min-height: 58vh;
+  }
+}
+
+@media (max-width: 720px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stat {
+    padding: 22px 4px 26px;
+  }
+  .stat + .stat {
+    border-left: none;
+    padding-left: 4px;
+  }
+  .stat:nth-child(even) {
+    border-left: 1px solid var(--d-line);
+    padding-left: 24px;
+  }
+  .stat:nth-child(n + 3) {
+    border-top: 1px solid var(--d-line);
+  }
+}
+
+@media (max-width: 560px) {
+  .wrap,
+  .hero-inner,
+  .stats {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .hero {
+    padding-top: 88px;
+  }
+  .hero-title {
+    font-size: 34px;
+  }
+  .hero-desc {
+    font-size: 15.5px;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cta-solid,
+  .cta-quiet {
+    justify-content: center;
+  }
+  .section {
+    padding: 72px 0;
+  }
+  .section-title {
+    font-size: 25px;
+  }
+  .story {
+    padding-top: 72px;
+  }
+  .story-step h3 {
+    font-size: 21px;
+  }
+  .cta-inner h2 {
+    font-size: 26px;
+  }
+  .role-card {
+    padding: 30px 24px;
+  }
+  .role-card h3 {
+    font-size: 20px;
+  }
+  .footer-inner {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .console-body {
+    font-size: 11.5px;
+  }
 }
 </style>

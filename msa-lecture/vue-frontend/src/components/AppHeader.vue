@@ -1,29 +1,37 @@
 <template>
-  <header class="app-header">
+  <header class="app-header" :class="{ overlay, scrolled: isScrolled }">
     <div class="header-inner">
-      <!-- 로고 -->
-      <router-link to="/" class="logo">
-        <img src="@/assets/images/logo/main_logo.png" alt="APINexus" class="logo-img" />
-        <span class="logo-text">APINexus</span>
-      </router-link>
+      <router-link to="/" class="brand">{{ BRAND.name }}</router-link>
 
-      <!-- 네비게이션 -->
       <nav class="nav-links" v-if="auth.isAuthenticated">
-        <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">API 카탈로그</router-link>
-        <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">내 구독</router-link>
+        <router-link
+          to="/courses"
+          class="nav-link"
+          :class="{ active: $route.path.startsWith('/courses') }"
+          >API 카탈로그</router-link
+        >
+        <router-link
+          to="/enrollments"
+          class="nav-link"
+          :class="{ active: $route.path === '/enrollments' }"
+          >내 구독</router-link
+        >
       </nav>
 
-      <!-- 우측 액션 -->
       <div class="header-actions">
         <template v-if="auth.isAuthenticated">
-          <router-link to="/mypage" class="user-avatar" :title="auth.user?.name">
-            {{ auth.user?.name?.charAt(0) || '?' }}
+          <router-link
+            to="/mypage"
+            class="user-avatar"
+            :title="auth.user?.name"
+          >
+            {{ auth.user?.name?.charAt(0) || "?" }}
           </router-link>
-          <button class="btn btn-ghost btn-sm" @click="handleLogout">로그아웃</button>
+          <button class="header-link" @click="handleLogout">로그아웃</button>
         </template>
         <template v-else>
-          <router-link to="/login" class="btn btn-ghost btn-sm">로그인</router-link>
-          <router-link to="/login" class="btn btn-primary btn-sm">시작하기</router-link>
+          <router-link to="/login" class="header-link">로그인</router-link>
+          <router-link to="/login" class="header-cta">시작하기</router-link>
         </template>
       </div>
     </div>
@@ -31,86 +39,143 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '@/store/auth.js'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useAuthStore } from "@/store/auth.js";
+import { useRouter } from "vue-router";
+import { BRAND } from "@/config/brand.js";
 
-const auth = useAuthStore()
-const router = useRouter()
+defineProps({
+  overlay: { type: Boolean, default: false },
+});
+
+const auth = useAuthStore();
+const router = useRouter();
+const isScrolled = ref(false);
+
+function onScroll() {
+  isScrolled.value = window.scrollY > 8;
+}
 
 function handleLogout() {
-  auth.logout()
-  router.push('/')
+  auth.logout();
+  router.push("/");
 }
+
+onMounted(() => {
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+});
+onUnmounted(() => window.removeEventListener("scroll", onScroll));
 </script>
 
 <style scoped>
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid transparent;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease;
 }
+
+.app-header.scrolled {
+  border-bottom-color: var(--color-border);
+}
+
+/* 다크 페이지 위에 얹히는 상태 */
+.app-header.overlay {
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.app-header.overlay.scrolled {
+  background: rgba(10, 11, 13, 0.72);
+  backdrop-filter: saturate(180%) blur(16px);
+  border-bottom-color: rgba(255, 255, 255, 0.09);
+}
+
 .header-inner {
-  max-width: 1200px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 28px;
   height: 64px;
   display: flex;
   align-items: center;
   gap: 32px;
 }
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-.logo-img {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-.logo-text {
-  font-family: var(--font-display);
+
+.brand {
   font-size: 17px;
   font-weight: 800;
+  letter-spacing: -0.04em;
   color: var(--color-text-primary);
-  letter-spacing: -0.3px;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
 }
+
 .nav-links {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
+
 .nav-link {
-  padding: 6px 14px;
-  border-radius: var(--radius-md);
+  padding: 7px 12px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
   transition: var(--transition);
 }
+
 .nav-link:hover,
 .nav-link.active {
-  color: var(--color-primary);
-  background: var(--color-primary-light);
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
 }
+
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-left: auto;
 }
-.btn-sm {
-  padding: 7px 16px;
-  font-size: 13px;
+
+.header-link {
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: var(--transition);
 }
+
+.header-link:hover {
+  color: var(--color-text-primary);
+}
+
+.header-cta {
+  padding: 9px 18px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: var(--transition);
+}
+
+.header-cta:hover {
+  background: #24262b;
+}
+
 .user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--color-primary-light);
   color: var(--color-primary);
@@ -119,11 +184,46 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition: var(--transition);
 }
+
 .user-avatar:hover {
   background: var(--color-primary);
   color: #fff;
+}
+
+/* overlay 상태의 밝은 텍스트 */
+.app-header.overlay .nav-link,
+.app-header.overlay .header-link {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.app-header.overlay .brand {
+  color: #fff;
+}
+
+.app-header.overlay .nav-link:hover,
+.app-header.overlay .header-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-header.overlay .header-cta {
+  background: #fff;
+  color: var(--ink);
+}
+
+.app-header.overlay .header-cta:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+@media (max-width: 640px) {
+  .header-inner {
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .nav-links {
+    display: none;
+  }
 }
 </style>
