@@ -1,5 +1,5 @@
 <template>
-  <span class="cat-chip" :class="[meta.tone, { dark, compact }]">
+  <span class="cat-chip" :class="[meta.tone, size, { dark, compact }]">
     <span class="cat-mark">
       <svg
         viewBox="0 0 24 24"
@@ -29,6 +29,12 @@ const props = defineProps({
   dark: { type: Boolean, default: false },
   /** 글리프만 노출 */
   compact: { type: Boolean, default: false },
+  /** md: 목록용, lg: 상세 화면 헤더용 */
+  size: {
+    type: String,
+    default: "md",
+    validator: (v) => ["md", "lg"].includes(v),
+  },
 });
 
 const meta = computed(() => categoryMeta(props.category));
@@ -78,6 +84,31 @@ const meta = computed(() => categoryMeta(props.category));
   background-position: var(--cat-shift, 0px) 0;
   opacity: 0.16;
   transition: background-position 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 상세 화면에서는 헤더 역할을 하므로 한 단계 키운다 */
+.lg {
+  gap: 14px;
+}
+
+.lg .cat-mark {
+  width: 54px;
+  height: 54px;
+  border-radius: 15px;
+}
+
+.lg .cat-mark svg {
+  width: 26px;
+  height: 26px;
+}
+
+.lg .cat-name {
+  font-size: 17px;
+  letter-spacing: -0.03em;
+}
+
+.lg .cat-slug {
+  font-size: 11px;
 }
 
 .cat-text {

@@ -1,53 +1,62 @@
 <template>
   <!--
-    카탈로그 그리드와 다른 구역임을 바로 읽히게 한다.
-    왼쪽은 잉크색 칼럼(추천 근거), 오른쪽은 흰 목차. 누를 곳은 없다.
+    카탈로그 흰 카드와 갈라지게, 패널 전체에 옅은 그라데이션을 깐다.
+    목록은 반투명 행이고 누를 곳은 없다.
   -->
-  <section v-if="items.length" class="rec" aria-label="추천 API">
-    <div class="rec-aside">
-      <p class="rec-eyebrow">
-        <span class="rec-rule" aria-hidden="true"></span>
-        For you
-      </p>
-      <h2 class="rec-headline">{{ headline }}</h2>
-      <p class="rec-sub">{{ subline }}</p>
-      <p class="rec-count">
-        <span class="tabular">{{ items.length }}</span
-        >건
-      </p>
-    </div>
+  <section
+    v-if="loading || items.length"
+    class="rec"
+    aria-label="추천 API"
+    :aria-busy="loading"
+  >
+    <span class="rec-orb rec-orb-a" aria-hidden="true"></span>
+    <span class="rec-orb rec-orb-b" aria-hidden="true"></span>
 
-    <ol class="rec-list">
-      <li v-for="(item, i) in items" :key="item.id" class="rec-row">
-        <span class="rec-rank" aria-hidden="true">
-          {{ String(i + 1).padStart(2, "0") }}
+    <header class="rec-head">
+      <p class="rec-eyebrow">추천</p>
+      <template v-if="loading">
+        <div class="skeleton-block rec-sk-title"></div>
+        <div class="skeleton-block rec-sk-sub"></div>
+      </template>
+      <template v-else>
+        <h2 class="rec-headline">{{ headline }}</h2>
+        <p class="rec-sub">{{ subline }}</p>
+      </template>
+    </header>
+
+    <ol v-if="loading" class="rec-sheet">
+      <li v-for="i in MAX_ITEMS" :key="i" class="rec-row">
+        <span class="skeleton-block rec-sk-icon" aria-hidden="true"></span>
+        <div class="rec-body">
+          <div class="skeleton-block rec-sk-line"></div>
+          <div class="skeleton-block rec-sk-line short"></div>
+        </div>
+        <span class="skeleton-block rec-sk-cat" aria-hidden="true"></span>
+      </li>
+    </ol>
+
+    <ol v-else class="rec-sheet">
+      <li v-for="item in items" :key="item.id" class="rec-row">
+        <span class="rec-icon" :class="metaOf(item).tone" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            v-html="metaOf(item).icon"
+          ></svg>
         </span>
 
         <div class="rec-body">
           <h3 class="rec-title">{{ item.title }}</h3>
           <p class="rec-desc">
-            {{ item.description || "설명이 등록되지 않은 API입니다." }}
+            {{ item.description || "설명이 아직 없는 API예요." }}
           </p>
         </div>
 
-        <div class="rec-tail">
-          <span class="rec-cat">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              v-html="metaOf(item).icon"
-            ></svg>
-            {{ metaOf(item).label }}
-          </span>
-          <span class="rec-provider">
-            {{ item.providerName || "제공사 미확인" }}
-          </span>
-        </div>
+        <span class="rec-cat">{{ metaOf(item).label }}</span>
       </li>
     </ol>
   </section>
@@ -65,6 +74,7 @@ const auth = useAuthStore();
 
 const items = ref([]);
 const basedOnCategory = ref(null);
+const loading = ref(true);
 
 const basedOnLabel = computed(() =>
   basedOnCategory.value ? categoryMeta(basedOnCategory.value).label : "",
@@ -72,14 +82,14 @@ const basedOnLabel = computed(() =>
 
 const headline = computed(() =>
   basedOnLabel.value
-    ? `${basedOnLabel.value} API를 쓰고 계시네요`
-    : "지금 기업들이 가장 많이 쓰는 API",
+    ? `${basedOnLabel.value}에 맞춰 API를 추천해요`
+    : "이런 API를 추천해요",
 );
 
 const subline = computed(() =>
   basedOnLabel.value
-    ? `구독 중인 API 가운데 ${basedOnLabel.value} 비중이 가장 높았습니다. 같은 영역에서 아직 안 쓰고 계신 API입니다.`
-    : "아직 구독 이력이 없어 도입 기업이 많은 순서로 골랐습니다.",
+    ? `${basedOnLabel.value}에서 현재 이런 API도 많이 사용 중이에요. 관심 기반으로 추천드릴게요.`
+    : "아직 구독이 없어서, 기업들이 많이 쓰는 순으로 추천했어요",
 );
 
 function metaOf(item) {
@@ -87,7 +97,10 @@ function metaOf(item) {
 }
 
 onMounted(async () => {
-  if (!auth.user?.id) return;
+  if (!auth.user?.id) {
+    loading.value = false;
+    return;
+  }
 
   try {
     // recommend-service는 공통 봉투 없이 바로 결과를 내려준다.
@@ -98,198 +111,213 @@ onMounted(async () => {
       : [];
     basedOnCategory.value = data?.basedOnCategory ?? null;
   } catch (e) {
-    // 추천은 보조 기능이라 실패해도 카탈로그를 방해하지 않는다.
     console.warn("[RecommendStrip] 추천 조회 실패:", e);
     items.value = [];
+  } finally {
+    loading.value = false;
   }
 });
 </script>
 
 <style scoped>
 .rec {
-  display: grid;
-  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
-  margin-bottom: 30px;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  background: #fff;
-  box-shadow: 0 18px 40px -28px rgba(11, 11, 12, 0.45);
-}
-
-/* 왼쪽: 왜 이걸 추천하는지 — 잉크색이라 카탈로그와 바로 갈라진다 */
-.rec-aside {
   position: relative;
-  padding: 32px 28px 28px;
-  background: var(--ink);
-  color: #fff;
+  overflow: hidden;
+  margin-bottom: 36px;
+  padding: 28px 28px 22px;
+  border-radius: 24px;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 42%),
+    linear-gradient(135deg, #fff7f2 0%, #ffe8dc 38%, #fff0f3 72%, #fffaf7 100%);
 }
 
-.rec-aside::before {
-  content: "";
+.rec-orb {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(180deg, var(--sk-red), var(--sk-orange));
+  border-radius: 50%;
+  filter: blur(42px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rec-orb-a {
+  top: -90px;
+  right: -40px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(234, 0, 44, 0.22), transparent 68%);
+}
+
+.rec-orb-b {
+  bottom: -120px;
+  left: -60px;
+  width: 320px;
+  height: 260px;
+  background: radial-gradient(
+    circle,
+    rgba(244, 119, 37, 0.28),
+    transparent 70%
+  );
+}
+
+.rec-head,
+.rec-sheet {
+  position: relative;
+  z-index: 1;
+}
+
+.rec-head {
+  margin-bottom: 18px;
 }
 
 .rec-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.48);
-  margin-bottom: 16px;
-}
-
-.rec-rule {
-  width: 18px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--sk-red);
+  margin-bottom: 8px;
 }
 
 .rec-headline {
-  font-family: var(--font-heading);
-  font-size: 23px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.35;
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
 .rec-sub {
-  margin-top: 12px;
-  font-size: 13.5px;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.58);
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  max-width: 100%;
 }
 
-.rec-count {
-  margin-top: 22px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--sk-orange);
-}
-
-/* 오른쪽: 흰 목차 */
-.rec-list {
+.rec-sheet {
   list-style: none;
-  padding: 8px 32px 8px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .rec-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.82),
+    rgba(255, 255, 255, 0.62)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.rec-icon {
+  flex: none;
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 0 18px;
-  padding: 18px 0;
-  border-top: 1px solid var(--color-border);
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--cat-bg);
+  color: var(--cat-ink);
 }
 
-.rec-row:first-child {
-  border-top: none;
+.rec-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
-.rec-rank {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--sk-red);
+.rec-body {
+  min-width: 0;
+  flex: 1;
 }
 
 .rec-title {
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--color-text-primary);
 }
 
 .rec-desc {
-  margin-top: 5px;
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--color-text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
   overflow: hidden;
-}
-
-.rec-tail {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
-  text-align: right;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .rec-cat {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
+  flex: none;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--color-text-primary);
-}
-
-.rec-cat svg {
-  width: 15px;
-  height: 15px;
   color: var(--color-text-muted);
 }
 
-.rec-provider {
-  font-size: 12px;
-  color: var(--color-text-muted);
+.rec .skeleton-block {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.45) 25%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.45) 75%
+  );
+  background-size: 200% 100%;
 }
 
-@media (max-width: 1100px) {
-  .rec-list {
-    padding: 8px 24px;
-  }
+.rec-sk-title {
+  width: min(280px, 70%);
+  height: 26px;
+  border-radius: 8px;
 }
 
-@media (max-width: 900px) {
-  .rec {
-    grid-template-columns: 1fr;
-  }
-  .rec-aside {
-    padding: 26px 24px 22px;
-  }
-  .rec-aside::before {
-    width: 100%;
-    height: 3px;
-  }
-  .rec-count {
-    margin-top: 16px;
-  }
-  .rec-list {
-    padding: 4px 22px 10px;
-  }
+.rec-sk-sub {
+  width: min(520px, 92%);
+  height: 16px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.rec-sk-icon {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+
+.rec-sk-line {
+  width: 62%;
+  height: 14px;
+}
+
+.rec-sk-line.short {
+  width: 84%;
+  height: 12px;
+  margin-top: 8px;
+}
+
+.rec-sk-cat {
+  flex: none;
+  width: 36px;
+  height: 12px;
 }
 
 @media (max-width: 560px) {
-  .rec-row {
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 0 12px;
+  .rec {
+    padding: 22px 18px 16px;
   }
-  .rec-tail {
-    grid-column: 2;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    margin-top: 8px;
-    text-align: left;
+  .rec-headline {
+    font-size: 20px;
+  }
+  .rec-cat,
+  .rec-sk-cat {
+    display: none;
   }
 }
 </style>
