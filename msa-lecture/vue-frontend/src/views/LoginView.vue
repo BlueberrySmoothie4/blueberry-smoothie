@@ -3,7 +3,10 @@
     <div class="login-layout">
       <!-- 좌측 브랜딩 -->
       <div class="login-left">
-        <router-link to="/" class="brand-name">{{ BRAND.name }}</router-link>
+        <router-link to="/" class="brand-name" :title="BRAND.fullName">
+          <span class="brand-sk">{{ BRAND.prefix }}</span
+          ><span>{{ BRAND.suffix }}</span>
+        </router-link>
         <div class="brand-content">
           <h2>다시 만나서<br />반갑습니다</h2>
           <p>로그인하고 구독 중인 API를 바로 확인하세요.</p>
@@ -200,19 +203,25 @@ async function handleRegister() {
   height: 480px;
   background: radial-gradient(
     ellipse at center,
-    rgba(49, 130, 246, 0.24),
-    transparent 62%
+    rgba(234, 0, 44, 0.16),
+    transparent 66%
   );
-  filter: blur(20px);
+  filter: blur(40px);
 }
 .brand-name {
   position: relative;
   z-index: 1;
-  display: inline-block;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   font-size: 19px;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: #fff;
+}
+
+.brand-sk {
+  color: var(--sk-red);
 }
 .brand-content {
   position: relative;
@@ -248,7 +257,7 @@ async function handleRegister() {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #7dd3fc;
+  background: var(--sk-orange);
   flex-shrink: 0;
 }
 
@@ -321,7 +330,7 @@ async function handleRegister() {
 }
 .form-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.14);
+  box-shadow: 0 0 0 3px rgba(234, 0, 44, 0.13);
 }
 .btn-full {
   width: 100%;

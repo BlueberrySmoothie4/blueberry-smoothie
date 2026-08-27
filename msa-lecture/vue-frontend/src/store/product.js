@@ -1,7 +1,11 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { productApi } from "@/api/product.js";
-import { CATEGORY_LABELS, categoryLabel } from "@/config/catalog.js";
+import {
+  CATEGORY_LABELS,
+  categoryLabel,
+  categoryValue,
+} from "@/config/catalog.js";
 
 export const useProductStore = defineStore("product", () => {
   const products = ref([]);
@@ -28,12 +32,16 @@ export const useProductStore = defineStore("product", () => {
     return [];
   }
 
-  async function fetchProducts() {
+  async function fetchProducts(category = selectedCategory.value) {
     loading.value = true;
     error.value = null;
 
     try {
-      const res = await productApi.getAll();
+      const res =
+        category === "전체"
+          ? await productApi.getAll()
+          : await productApi.getByCategory(categoryValue(category));
+
       products.value = unwrapList(res).map(normalizeProduct);
     } catch (e) {
       console.error("[ProductStore] fetchProducts failed:", e);
@@ -67,6 +75,7 @@ export const useProductStore = defineStore("product", () => {
 
   function setCategory(cat) {
     selectedCategory.value = cat;
+    fetchProducts(cat);
   }
 
   return {

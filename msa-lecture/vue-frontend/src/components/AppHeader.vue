@@ -1,7 +1,10 @@
 <template>
   <header class="app-header" :class="{ overlay, scrolled: isScrolled }">
     <div class="header-inner">
-      <router-link to="/" class="brand">{{ BRAND.name }}</router-link>
+      <router-link to="/" class="brand" :title="BRAND.fullName">
+        <span class="brand-sk">{{ BRAND.prefix }}</span
+        ><span class="brand-am">{{ BRAND.suffix }}</span>
+      </router-link>
 
       <nav class="nav-links" v-if="auth.isAuthenticated">
         <router-link to="/products" class="nav-link" :class="{ active: $route.path.startsWith('/products') }">API 상품</router-link>
@@ -98,12 +101,19 @@ onUnmounted(() => window.removeEventListener("scroll", onScroll));
 }
 
 .brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   font-size: 17px;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: var(--color-text-primary);
   flex-shrink: 0;
   transition: color 0.3s ease;
+}
+
+.brand-sk {
+  color: var(--sk-red);
 }
 
 .nav-links {
