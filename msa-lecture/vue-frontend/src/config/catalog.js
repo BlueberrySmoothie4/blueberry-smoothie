@@ -3,6 +3,7 @@
  * - ApiProduct.Category (course-service)
  * - ApiProduct.Status
  * - Subscription.Status (enrollment-service)
+ * - Payment.Status (payment-service)
  * enum 값이 바뀌면 이 파일만 수정한다.
  */
 
@@ -126,6 +127,27 @@ export const SUBSCRIPTION_STATUS = {
 export function subscriptionStatus(status) {
   return (
     SUBSCRIPTION_STATUS[status] || {
+      label: status || "알 수 없음",
+      pill: "inactive",
+    }
+  );
+}
+
+/**
+ * Payment.Status — 구독 신청 시 enrollment-service 가 결제를 호출해 생성된다.
+ * pill 값 failed 는 global.css 에 없고 PaymentLedger/PaymentReceiptDrawer 의
+ * scoped 스타일에서만 정의한다. 결제 뱃지는 그 두 곳에서만 렌더된다.
+ */
+export const PAYMENT_STATUS = {
+  PENDING: { label: "결제 대기", pill: "pending" },
+  COMPLETED: { label: "결제 완료", pill: "active" },
+  FAILED: { label: "결제 실패", pill: "failed" },
+  CANCELLED: { label: "취소됨", pill: "inactive" },
+};
+
+export function paymentStatus(status) {
+  return (
+    PAYMENT_STATUS[status] || {
       label: status || "알 수 없음",
       pill: "inactive",
     }
