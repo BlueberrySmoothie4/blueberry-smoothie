@@ -1,0 +1,62 @@
+# api-gateway 라우팅 오버라이드
+# 컨테이너의 /app/config/application.yml 로 마운트되어 이미지 내부 설정을 덮어쓴다.
+# 도메인 치환으로 바뀐 것은 course/enrollment 두 라우트의 Path 예측자와 RewritePath뿐이고,
+# uri(lb://course-service 등 Eureka 등록명)는 기존 그대로 유지한다.
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        # Auth Server (OAuth2 / OIDC / Login) - 표준 프로토콜 경로라 변경 없음
+        - id: auth-server
+          uri: lb://auth-server
+          predicates:
+            - Path=/oauth2/**,/login,/login/**,/logout,/userinfo,/error,/default-ui.css,/favicon.ico,/.well-known/openid-configuration,/.well-known/oauth-authorization-server
+          filters:
+            - RewritePath=/(?<segment>.*), /${segment}
+            - PreserveHostHeader
+
+        # User Service - 변경 없음
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?<segment>.*), /api/users/${segment}
+
+        # API Product Service (컨테이너명은 course-service 유지)
+        - id: course-service
+          uri: lb://course-service
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - RewritePath=/api/products/(?<segment>.*), /api/products/${segment}
+
+        # Subscription Service (컨테이너명은 enrollment-service 유지)
+        - id: enrollment-service
+          uri: lb://enrollment-service
+          predicates:
+            - Path=/api/subscriptions/**
+          filters:
+            - RewritePath=/api/subscriptions/(?<segment>.*), /api/subscriptions/${segment}
+
+        # Payment Service - 변경 없음
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - RewritePath=/api/payments/(?<segment>.*), /api/payments/${segment}
+
+        # Recommend Service (FastAPI) - 변경 없음
+        - id: recommend-service
+          uri: lb://recommend-service
+          predicates:
+            - Path=/api/recommend/**
+          filters:
+            - RewritePath=/api/recommend/(?<segment>.*), /api/recommend/${segment}

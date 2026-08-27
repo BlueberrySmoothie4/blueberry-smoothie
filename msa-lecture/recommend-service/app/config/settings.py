@@ -17,14 +17,14 @@ class Settings(BaseSettings):
     jwt_issuer_uri: str = "http://localhost:8080"
     jwk_set_uri: str = "http://auth-server:9000/oauth2/jwks"
 
-    # 서비스 URL
-    enrollment_service_url: str = "http://localhost:8083"
-    course_service_url: str = "http://localhost:8082"
+    # 서비스 URL (컨테이너/Eureka 등록명은 기존 그대로 course/enrollment 유지)
+    subscription_service_url: str = "http://localhost:8083"
+    product_service_url: str = "http://localhost:8082"
 
     # Kafka
     kafka_bootstrap_servers: str = "localhost:9092"
     kafka_consumer_group_id: str = "recommend-service"
-    kafka_topic_enrollment_completed: str = "enrollment.completed"
+    kafka_topic_subscription_completed: str = "subscription.completed"
 
     class Config:
         env_file = ".env"

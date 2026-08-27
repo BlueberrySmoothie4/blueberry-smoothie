@@ -7,15 +7,15 @@ from app.config.settings import settings
 logger = logging.getLogger(__name__)
 
 
-class EnrollmentCompletedConsumer:
+class SubscriptionCompletedConsumer:
     """
-    Kafka Consumer: enrollment.completed 이벤트 수신
-    - Enrollment Service가 수강 활성화 후 발행
+    Kafka Consumer: subscription.completed 이벤트 수신
+    - Subscription Service가 구독 활성화 후 발행
     - 실시간 추천 캐시 갱신 트리거 (실습 수준: 로그 처리)
     """
 
     def __init__(self):
-        self.topic = settings.kafka_topic_enrollment_completed
+        self.topic = settings.kafka_topic_subscription_completed
         self.consumer = None
         self._running = False
 
@@ -57,18 +57,21 @@ class EnrollmentCompletedConsumer:
 
     def _handle_message(self, event: dict):
         """
-        enrollment.completed 이벤트 처리
-        - enrollmentId, userId, courseId 추출
+        subscription.completed 이벤트 처리
+        - subscriptionId, userId, productId 추출
         - 추천 캐시 갱신 트리거 (실습: 로그로 대체)
+
+        주의: 이 키들은 enrollment-service의 KafkaEvent.SubscriptionCompletedEvent
+        필드명과 1:1로 맞아야 한다. 어긋나면 예외 없이 조용히 None이 된다.
         """
         try:
-            enrollment_id = event.get("enrollmentId")
+            subscription_id = event.get("subscriptionId")
             user_id = event.get("userId")
-            course_id = event.get("courseId")
+            product_id = event.get("productId")
 
             logger.info(
-                f"[KafkaConsumer] enrollment.completed 수신 - "
-                f"enrollmentId: {enrollment_id}, userId: {user_id}, courseId: {course_id}"
+                f"[KafkaConsumer] subscription.completed 수신 - "
+                f"subscriptionId: {subscription_id}, userId: {user_id}, productId: {product_id}"
             )
 
             # 실습 포인트: 여기서 캐시 갱신 또는 추천 재계산 로직 추가 가능
@@ -78,4 +81,4 @@ class EnrollmentCompletedConsumer:
             logger.error(f"[KafkaConsumer] 메시지 처리 실패: {e}, event: {event}")
 
 
-enrollment_consumer = EnrollmentCompletedConsumer()
+subscription_consumer = SubscriptionCompletedConsumer()

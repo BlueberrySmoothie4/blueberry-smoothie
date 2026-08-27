@@ -25,8 +25,8 @@ public class Payment {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "course_id", nullable = false)
-    private Long courseId;
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;

@@ -1,6 +1,6 @@
 package com.lecture.enrollment.kafka;
 
-import com.lecture.enrollment.service.EnrollmentService;
+import com.lecture.enrollment.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -11,14 +11,14 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EnrollmentKafkaConsumer {
+public class SubscriptionKafkaConsumer {
 
-    private final EnrollmentService enrollmentService;
+    private final SubscriptionService subscriptionService;
 
     /**
      * payment.completed 이벤트 수신
-     * → 수강 상태 PENDING → ACTIVE 로 변경
-     * → enrollment.completed 이벤트 발행 (→ Recommend Service)
+     * → 구독 상태 PENDING → ACTIVE 로 변경
+     * → subscription.completed 이벤트 발행 (→ Recommend Service)
      *
      * payment-service 쪽은 JsonSerializer + type header 미포함으로 이벤트를 발행하므로,
      * 여기서는 특정 DTO 타입으로 바로 받지 않고 Map<String, Object> 로 받아 처리한다.
@@ -33,25 +33,25 @@ public class EnrollmentKafkaConsumer {
 
         try {
             Object userIdValue = event.get("userId");
-            Object courseIdValue = event.get("courseId");
+            Object productIdValue = event.get("productId");
 
-            if (userIdValue == null || courseIdValue == null) {
-                throw new IllegalArgumentException("Kafka 이벤트에 userId 또는 courseId가 없습니다.");
+            if (userIdValue == null || productIdValue == null) {
+                throw new IllegalArgumentException("Kafka 이벤트에 userId 또는 productId가 없습니다.");
             }
 
             Long userId = ((Number) userIdValue).longValue();
-            Long courseId = ((Number) courseIdValue).longValue();
+            Long productId = ((Number) productIdValue).longValue();
 
-            log.info("[Kafka Consumer] payment.completed 파싱 완료 - userId: {}, courseId: {}",
-                    userId, courseId);
+            log.info("[Kafka Consumer] payment.completed 파싱 완료 - userId: {}, productId: {}",
+                    userId, productId);
 
-            enrollmentService.activateEnrollment(userId, courseId);
+            subscriptionService.activateSubscription(userId, productId);
 
-            log.info("[Kafka Consumer] 수강 활성화 완료 - userId: {}, courseId: {}",
-                    userId, courseId);
+            log.info("[Kafka Consumer] 구독 활성화 완료 - userId: {}, productId: {}",
+                    userId, productId);
 
         } catch (Exception e) {
-            log.error("[Kafka Consumer] 수강 활성화 실패 - event: {}, error: {}",
+            log.error("[Kafka Consumer] 구독 활성화 실패 - event: {}, error: {}",
                     event, e.getMessage(), e);
         }
     }

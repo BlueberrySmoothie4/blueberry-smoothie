@@ -17,22 +17,22 @@ public class PaymentDto {
     @AllArgsConstructor
     @Builder
     public static class PaymentRequest {
-        @NotNull(message = "강의 ID는 필수입니다")
-        private Long courseId;
+        @NotNull(message = "API 상품 ID는 필수입니다")
+        private Long productId;
 
         @NotNull(message = "금액은 필수입니다")
         @Positive(message = "금액은 양수여야 합니다")
         private BigDecimal amount;
     }
 
-    // 내부 서비스 결제 요청 (Enrollment Service → Payment Service)
+    // 내부 서비스 결제 요청 (Subscription Service(enrollment-service) → Payment Service)
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class InternalPaymentRequest {
         private Long userId;
-        private Long courseId;
+        private Long productId;
         private BigDecimal amount;
     }
 
@@ -44,7 +44,7 @@ public class PaymentDto {
     public static class PaymentResponse {
         private Long paymentId;
         private Long userId;
-        private Long courseId;
+        private Long productId;
         private BigDecimal amount;
         private Payment.Status status;
         private String transactionId;
@@ -54,7 +54,7 @@ public class PaymentDto {
             return PaymentResponse.builder()
                     .paymentId(payment.getId())
                     .userId(payment.getUserId())
-                    .courseId(payment.getCourseId())
+                    .productId(payment.getProductId())
                     .amount(payment.getAmount())
                     .status(payment.getStatus())
                     .transactionId(payment.getTransactionId())

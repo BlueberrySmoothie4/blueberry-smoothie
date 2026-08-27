@@ -4,18 +4,8 @@
       <router-link to="/" class="brand">{{ BRAND.name }}</router-link>
 
       <nav class="nav-links" v-if="auth.isAuthenticated">
-        <router-link
-          to="/courses"
-          class="nav-link"
-          :class="{ active: $route.path.startsWith('/courses') }"
-          >API 카탈로그</router-link
-        >
-        <router-link
-          to="/enrollments"
-          class="nav-link"
-          :class="{ active: $route.path === '/enrollments' }"
-          >내 구독</router-link
-        >
+        <router-link to="/products" class="nav-link" :class="{ active: $route.path.startsWith('/products') }">API 상품</router-link>
+        <router-link to="/subscriptions" class="nav-link" :class="{ active: $route.path === '/subscriptions' }">내 구독</router-link>
       </nav>
 
       <div class="header-actions">

@@ -23,7 +23,7 @@ public class PaymentService {
     private final PaymentKafkaProducer kafkaProducer;
 
     /**
-     * 내부 결제 요청 (Enrollment Service → Payment Service REST 호출)
+     * 내부 결제 요청 (Subscription Service(enrollment-service) → Payment Service REST 호출)
      * 실습 환경에서는 PG 연동 없이 항상 성공으로 처리
      *
      * 처리 흐름:
@@ -36,13 +36,13 @@ public class PaymentService {
     public PaymentDto.InternalPaymentResult processInternalPayment(
             PaymentDto.InternalPaymentRequest request) {
 
-        log.info("[PaymentService] 결제 요청 - userId: {}, courseId: {}, amount: {}",
-                request.getUserId(), request.getCourseId(), request.getAmount());
+        log.info("[PaymentService] 결제 요청 - userId: {}, productId: {}, amount: {}",
+                request.getUserId(), request.getProductId(), request.getAmount());
 
         Payment payment = paymentRepository.save(
                 Payment.builder()
                         .userId(request.getUserId())
-                        .courseId(request.getCourseId())
+                        .productId(request.getProductId())
                         .amount(request.getAmount())
                         .build()
         );
@@ -58,7 +58,7 @@ public class PaymentService {
                     PaymentKafkaProducer.PaymentCompletedEvent.builder()
                             .paymentId(payment.getId())
                             .userId(request.getUserId())
-                            .courseId(request.getCourseId())
+                            .productId(request.getProductId())
                             .status("COMPLETED")
                             .build()
             );
@@ -73,10 +73,10 @@ public class PaymentService {
         } catch (Exception e) {
             payment.fail();
 
-            log.error("[PaymentService] 결제 실패 - paymentId: {}, userId: {}, courseId: {}, error: {}",
+            log.error("[PaymentService] 결제 실패 - paymentId: {}, userId: {}, productId: {}, error: {}",
                     payment.getId(),
                     request.getUserId(),
-                    request.getCourseId(),
+                    request.getProductId(),
                     e.getMessage(),
                     e);
 
