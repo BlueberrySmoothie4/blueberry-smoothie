@@ -54,14 +54,18 @@
             </div>
 
             <template v-else-if="product">
-              <div class="drawer-tags">
-                <span class="badge" :class="style.badge">{{
-                  categoryName
-                }}</span>
-                <span class="status-pill" :class="statusMeta.pill">
-                  <span class="status-dot"></span>
-                  {{ statusMeta.label }}
-                </span>
+              <div class="spec-plate">
+                <CategoryChip :category="product.category" size="lg" />
+
+                <span class="plate-div" aria-hidden="true"></span>
+
+                <div class="plate-field">
+                  <span class="plate-label">운영 상태</span>
+                  <span class="plate-value" :class="statusMeta.pill">
+                    <span class="status-dot"></span>
+                    {{ statusMeta.label }}
+                  </span>
+                </div>
               </div>
 
               <p class="drawer-desc">
@@ -125,12 +129,9 @@
 
 <script setup>
 import { computed, ref, watch, onUnmounted } from "vue";
+import CategoryChip from "@/components/CategoryChip.vue";
 import { productApi } from "@/api/product.js";
-import {
-  categoryLabel,
-  categoryStyle,
-  productStatus,
-} from "@/config/catalog.js";
+import { categoryLabel, productStatus } from "@/config/catalog.js";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -145,7 +146,6 @@ const error = ref("");
 
 const title = computed(() => product.value?.title || "API 상품");
 const categoryName = computed(() => categoryLabel(product.value?.category));
-const style = computed(() => categoryStyle(product.value?.category));
 const statusMeta = computed(() => productStatus(product.value?.status));
 const subscriberCount = computed(() =>
   Number(product.value?.subscriberCount ?? 0).toLocaleString(),
@@ -314,11 +314,55 @@ onUnmounted(() => {
   padding: 48px 8px;
 }
 
-.drawer-tags {
+/* 카테고리와 상태를 한 판에 묶어 상세 헤더처럼 읽히게 한다 */
+.spec-plate {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 20px;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+}
+
+.plate-div {
+  align-self: stretch;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.plate-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plate-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.plate-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.plate-value.active {
+  color: var(--color-success);
+}
+.plate-value.pending {
+  color: var(--color-warning);
+}
+.plate-value.inactive {
+  color: var(--color-text-muted);
 }
 
 .drawer-desc {
