@@ -13,14 +13,14 @@
                 신청한 API는 결제가 승인되면 구독 중으로 전환됩니다.
               </p>
             </div>
-            <span class="count-badge" v-if="!loading">
+            <span class="count-badge" v-if="loaded">
               <span class="tabular">{{ subscriptions.length }}</span
               >건
             </span>
           </div>
         </header>
 
-        <div v-if="loading" class="loading-center">
+        <div v-if="loading || !loaded" class="loading-center">
           <div class="spinner"></div>
         </div>
 
@@ -86,6 +86,10 @@
           </article>
         </div>
 
+        <div v-else-if="error" class="empty-state">
+          <p class="empty-state-title">{{ error }}</p>
+        </div>
+        
         <div v-else class="empty-state">
           <div class="empty-state-icon">
             <svg
@@ -112,18 +116,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import AppSideRail from "@/components/AppSideRail.vue";
-import { subscriptionApi } from "@/api/subscription.js";
+import { storeToRefs } from "pinia";
+import { useSubscriptionStore } from "@/store/subscription.js";
 import { useAuthStore } from "@/store/auth.js";
 import { categoryStyle, subscriptionStatus } from "@/config/catalog.js";
 
 const router = useRouter();
 const auth = useAuthStore();
 
-const subscriptions = ref([]);
-const loading = ref(true);
+const subStore = useSubscriptionStore();
+const { subscriptions, loading, error, loaded } = storeToRefs(subStore);
 
 const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
@@ -152,20 +157,7 @@ onMounted(async () => {
     router.replace("/mypage");
     return;
   }
-
-  try {
-    const res = await subscriptionApi.getMySubscriptions();
-    subscriptions.value = Array.isArray(res.data?.data)
-      ? res.data.data
-      : Array.isArray(res.data)
-        ? res.data
-        : [];
-  } catch (e) {
-    console.error("[Subscription] 목록 조회 실패:", e);
-    subscriptions.value = [];
-  } finally {
-    loading.value = false;
-  }
+  await subStore.fetchMySubscriptions();
 });
 </script>
 
