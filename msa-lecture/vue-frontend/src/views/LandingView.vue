@@ -25,8 +25,8 @@
           </h1>
 
           <p class="hero-desc enter" style="--d: 160ms">
-            언어·비전·음성 API를 스펙과 요금으로 나란히 비교하고, 크레딧으로
-            결제하면 그 자리에서 구독이 시작됩니다.
+            언어·비전·음성 API를 스펙과 요금으로 나란히 비교하고,
+            <br />크레딧으로 결제하면 그 자리에서 구독이 시작됩니다.
           </p>
 
           <div class="hero-actions enter" style="--d: 240ms">
