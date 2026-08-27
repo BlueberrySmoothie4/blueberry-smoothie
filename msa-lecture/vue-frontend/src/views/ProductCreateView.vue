@@ -333,7 +333,7 @@ async function handleSubmit() {
 .form-textarea:focus,
 .form-select:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.14);
+  box-shadow: 0 0 0 3px rgba(234, 0, 44, 0.13);
 }
 
 .form-textarea {

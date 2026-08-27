@@ -1,7 +1,12 @@
 <template>
-  <router-link
-    :to="`/products/${product.id}`"
+  <component
+    :is="interactive ? 'button' : 'router-link'"
+    v-bind="
+      interactive ? { type: 'button' } : { to: `/products/${product.id}` }
+    "
     class="api-card surface surface-hover"
+    :class="{ selected }"
+    @click="onClick"
   >
     <div class="api-card-head">
       <span class="cat-tile" :class="style.tone">{{ label.charAt(0) }}</span>
@@ -23,7 +28,7 @@
         <i>/월</i>
       </span>
     </div>
-  </router-link>
+  </component>
 </template>
 
 <script setup>
@@ -32,7 +37,12 @@ import { categoryLabel, categoryStyle } from "@/config/catalog.js";
 
 const props = defineProps({
   product: { type: Object, required: true },
+  /** true면 링크 이동 대신 select 이벤트를 보낸다 (목록 사이드 패널용) */
+  interactive: { type: Boolean, default: false },
+  selected: { type: Boolean, default: false },
 });
+
+const emit = defineEmits(["select"]);
 
 const label = computed(() => categoryLabel(props.product.category));
 const style = computed(() => categoryStyle(props.product.category));
@@ -42,6 +52,12 @@ const subscriberCount = computed(() =>
 );
 
 const price = computed(() => Number(props.product.price ?? 0).toLocaleString());
+
+function onClick() {
+  if (props.interactive) {
+    emit("select", props.product);
+  }
+}
 </script>
 
 <style scoped>
@@ -49,7 +65,23 @@ const price = computed(() => Number(props.product.price ?? 0).toLocaleString());
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   padding: 22px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.api-card {
+  appearance: none;
+  border: none;
+  background: var(--color-bg-primary);
+}
+
+.api-card.selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .api-card-head {

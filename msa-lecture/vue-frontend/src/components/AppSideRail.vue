@@ -1,7 +1,10 @@
 <template>
   <aside class="rail">
     <router-link to="/" class="rail-brand">
-      <span class="rail-name">{{ BRAND.name }}</span>
+      <span class="rail-name">
+        <span class="rail-sk">{{ BRAND.prefix }}</span
+        ><span>{{ BRAND.suffix }}</span>
+      </span>
       <span class="rail-mark">{{ BRAND.mark }}</span>
     </router-link>
 
@@ -141,10 +144,17 @@ function handleLogout() {
 }
 
 .rail-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   font-size: 16.5px;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: var(--color-text-primary);
+}
+
+.rail-sk {
+  color: var(--sk-red);
 }
 
 .rail-mark {

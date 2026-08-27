@@ -16,7 +16,7 @@
         <div class="hero-copy">
           <p class="eyebrow enter" style="--d: 0ms">
             <span class="eyebrow-rule"></span>
-            AI 컴포넌트 원스톱 마켓플레이스
+            {{ BRAND.fullName }}
           </p>
 
           <h1 class="hero-title enter" style="--d: 80ms">
@@ -25,8 +25,8 @@
           </h1>
 
           <p class="hero-desc enter" style="--d: 160ms">
-            텍스트·비전·음성 API를 성능과 요금으로 비교하고, 구독 즉시 발급되는
-            Key로 바로 연동하세요.
+            언어·비전·음성 API를 스펙과 요금으로 나란히 비교하고,
+            <br />크레딧으로 결제하면 그 자리에서 구독이 시작됩니다.
           </p>
 
           <div class="hero-actions enter" style="--d: 240ms">
@@ -127,7 +127,7 @@
             class="reveal"
             :style="{ '--d': `${i * 90}ms` }"
           >
-            <router-link to="/login" class="api-card">
+            <router-link to="/login" class="api-card" @mousemove="onCardMove">
               <div class="api-card-head">
                 <span class="api-thumb" :class="api.tone">
                   {{ api.category.charAt(0) }}
@@ -152,129 +152,161 @@
     <section class="story">
       <div class="wrap story-head reveal">
         <p class="section-label">How it works</p>
-        <h2 class="section-title">연동까지 3단계면 충분합니다</h2>
+        <h2 class="section-title">찾고, 결제하고, 바로 씁니다</h2>
+        <p class="section-sub">
+          견적서도 담당자 미팅도 없습니다. 카탈로그에서 고른 API는 결제가
+          확인되는 순간부터 쓸 수 있습니다.
+        </p>
       </div>
 
       <div class="wrap story-grid">
         <!-- 스크롤 중 고정되는 시각 영역 -->
         <div class="story-visual">
           <div class="stage">
-            <!-- 01 카탈로그 -->
-            <div class="panel" :class="{ on: activeStep === 0 }">
-              <div class="panel-bar">
-                <span class="panel-title">API 카탈로그</span>
-                <span class="panel-meta">1,248개</span>
-              </div>
-              <div class="panel-chips">
-                <span
-                  v-for="(c, i) in ['문서', '비전', '음성', '언어']"
-                  :key="c"
-                  class="chip"
-                  :class="{ on: i === 0 }"
-                  >{{ c }}</span
-                >
-              </div>
-              <ul class="panel-rows">
-                <li
-                  v-for="(r, i) in catalogRows"
-                  :key="r.name"
-                  :style="{ '--d': `${i * 90}ms` }"
-                >
-                  <span class="row-name">{{ r.name }}</span>
-                  <span class="row-price">{{ r.price }}</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- 02 결제 -->
-            <div class="panel" :class="{ on: activeStep === 1 }">
-              <div class="panel-bar">
-                <span class="panel-title">구독 결제</span>
-                <span class="panel-meta">crd_8f2a</span>
-              </div>
-              <div class="pay">
-                <div class="pay-row">
-                  <span>문서 요약 API · 월 구독</span>
-                  <b>₩89,000</b>
+            <div class="stage-panels">
+              <!-- 01 카탈로그 -->
+              <div class="panel" :class="{ on: activeStep === 0 }">
+                <div class="panel-bar">
+                  <span class="panel-title">API 카탈로그</span>
+                  <span class="panel-meta">1,248개</span>
                 </div>
-                <div class="pay-row dim">
-                  <span>보유 크레딧</span>
-                  <b>₩1,200,000</b>
-                </div>
-                <div class="pay-bar">
-                  <i :class="{ on: activeStep === 1 }"></i>
-                </div>
-                <div class="pay-row total">
-                  <span>결제 후 잔액</span>
-                  <b>₩1,111,000</b>
-                </div>
-                <div class="pay-done">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                <div class="panel-chips">
+                  <span
+                    v-for="(c, i) in ['문서', '비전', '음성', '언어']"
+                    :key="c"
+                    class="chip"
+                    :class="{ on: i === 0 }"
+                    >{{ c }}</span
                   >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  결제 완료 · 구독 상태 ACTIVE
+                </div>
+                <ul class="panel-rows">
+                  <li
+                    v-for="(r, i) in catalogRows"
+                    :key="r.name"
+                    :style="{ '--d': `${i * 90}ms` }"
+                  >
+                    <span class="row-name">{{ r.name }}</span>
+                    <span class="row-price">{{ r.price }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- 02 결제 -->
+              <div class="panel" :class="{ on: activeStep === 1 }">
+                <div class="panel-bar">
+                  <span class="panel-title">구독 결제</span>
+                  <span class="panel-meta">crd_8f2a</span>
+                </div>
+                <div class="pay">
+                  <div class="pay-row">
+                    <span>문서 요약 API · 월 구독</span>
+                    <b>₩89,000</b>
+                  </div>
+                  <div class="pay-row dim">
+                    <span>보유 크레딧</span>
+                    <b>₩1,200,000</b>
+                  </div>
+                  <div class="pay-bar">
+                    <i :class="{ on: activeStep === 1 }"></i>
+                  </div>
+                  <div class="pay-row total">
+                    <span>결제 후 잔액</span>
+                    <b>₩1,111,000</b>
+                  </div>
+                  <div class="pay-done">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    결제 완료 · 구독 상태 ACTIVE
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 03 Key 발급 -->
-            <div class="panel" :class="{ on: activeStep === 2 }">
-              <div class="panel-bar">
-                <span class="panel-title">구독 상태</span>
-                <span class="panel-meta ok"
-                  ><span class="pulse"></span>ACTIVE</span
-                >
-              </div>
-              <div class="statebox">
-                <span class="state-step done">PENDING</span>
-                <span class="state-arrow">→</span>
-                <span class="state-step now">ACTIVE</span>
-              </div>
-              <pre
-                class="panel-code"
-              ><span class="c-cmd">GET</span> {{ BRAND.apiHost }}/api/subscriptions/my
+              <!-- 03 Key 발급 -->
+              <div class="panel" :class="{ on: activeStep === 2 }">
+                <div class="panel-bar">
+                  <span class="panel-title">구독 상태</span>
+                  <span class="panel-meta ok"
+                    ><span class="pulse"></span>ACTIVE</span
+                  >
+                </div>
+                <div class="statebox">
+                  <span class="state-step done">PENDING</span>
+                  <span class="state-arrow">→</span>
+                  <span class="state-step now">ACTIVE</span>
+                </div>
+                <pre
+                  class="panel-code"
+                ><span class="c-cmd">GET</span> {{ BRAND.apiHost }}/api/subscriptions/my
 
 { <span class="c-key">"productId"</span>: <span class="c-num">12</span>,
   <span class="c-key">"status"</span>: <span class="c-str">"ACTIVE"</span>,
   <span class="c-key">"product"</span>: { <span class="c-key">"title"</span>: <span class="c-str">"계약서 요약 API"</span> } }</pre>
+              </div>
+            </div>
+
+            <!-- 단계 인디케이터 -->
+            <div class="stage-dots">
+              <button
+                v-for="(s, i) in steps"
+                :key="s.title"
+                type="button"
+                class="stage-dot"
+                :class="{ on: activeStep === i }"
+                :aria-label="`${i + 1}단계 · ${s.title}`"
+                @click="scrollToStep(i)"
+              >
+                <span class="dot-fill"></span>
+              </button>
             </div>
           </div>
         </div>
 
         <!-- 스크롤되는 설명 영역 -->
-        <ol class="story-steps">
-          <li
-            v-for="(s, i) in steps"
-            :key="s.title"
-            class="story-step"
-            :class="{ on: activeStep === i }"
-            :data-step="i"
-            ref="stepEls"
-          >
-            <span class="step-num">{{ String(i + 1).padStart(2, "0") }}</span>
-            <h3>{{ s.title }}</h3>
-            <p>{{ s.desc }}</p>
-            <ul class="step-points">
-              <li v-for="p in s.points" :key="p">{{ p }}</li>
-            </ul>
-          </li>
-        </ol>
+        <div class="story-steps" ref="stepsEl">
+          <div class="story-rail" aria-hidden="true">
+            <i :style="{ transform: `scaleY(${storyProgress})` }"></i>
+          </div>
+
+          <ol class="story-list">
+            <li
+              v-for="(s, i) in steps"
+              :key="s.title"
+              class="story-step"
+              :class="{ on: activeStep === i }"
+              :data-step="i"
+              ref="stepEls"
+            >
+              <span class="step-dot" aria-hidden="true"></span>
+              <span class="step-num">{{ String(i + 1).padStart(2, "0") }}</span>
+              <h3>{{ s.title }}</h3>
+              <p>{{ s.desc }}</p>
+              <ul class="step-points">
+                <li v-for="p in s.points" :key="p">{{ p }}</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
       </div>
     </section>
 
     <!-- ── 역할별 ── -->
     <section class="section roles">
       <div class="wrap roles-grid">
-        <article class="role-card reveal">
+        <article class="role-card reveal" @mousemove="onCardMove">
           <p class="role-tag">구매 기업</p>
-          <h3>필요한 기능만 골라 씁니다</h3>
+          <h3>모델을 직접 만들지 않아도 됩니다</h3>
+          <p class="role-desc">
+            학습 데이터도, MLOps 인력도 필요 없습니다. 검증된 API를 골라 제품에
+            붙이기만 하면 됩니다.
+          </p>
           <ul>
             <li v-for="t in buyerPoints" :key="t">{{ t }}</li>
           </ul>
@@ -294,9 +326,17 @@
           </router-link>
         </article>
 
-        <article class="role-card role-accent reveal" style="--d: 100ms">
+        <article
+          class="role-card role-accent reveal"
+          style="--d: 100ms"
+          @mousemove="onCardMove"
+        >
           <p class="role-tag">API 제공사</p>
-          <h3>만든 모델을 매출로 연결합니다</h3>
+          <h3>만든 모델에 가격표를 붙이세요</h3>
+          <p class="role-desc">
+            영업 조직 없이도 팔 수 있습니다. 상품을 등록하면 카탈로그 노출부터
+            결제·정산까지 이어집니다.
+          </p>
           <ul>
             <li v-for="t in providerPoints" :key="t">{{ t }}</li>
           </ul>
@@ -322,8 +362,11 @@
     <section class="cta-band">
       <div class="cta-glow" aria-hidden="true"></div>
       <div class="wrap cta-inner reveal">
-        <h2>오늘 바로 첫 API를 붙여보세요</h2>
-        <p>가입은 무료이고, 구독한 만큼만 크레딧이 차감됩니다.</p>
+        <h2>첫 API는 오늘 붙일 수 있습니다</h2>
+        <p>
+          가입에는 비용이 들지 않습니다. 구독한 API에 대해서만 크레딧이
+          차감됩니다.
+        </p>
         <router-link to="/login" class="cta-solid cta-solid-light">
           무료로 시작하기
           <svg
@@ -343,7 +386,11 @@
 
     <footer class="footer">
       <div class="wrap footer-inner">
-        <span class="footer-brand">{{ BRAND.name }}</span>
+        <span class="footer-brand">
+          <span class="footer-sk">{{ BRAND.prefix }}</span
+          ><span>{{ BRAND.suffix }}</span>
+          <em>{{ BRAND.fullName }}</em>
+        </span>
         <p class="footer-copy">© 2026 {{ BRAND.name }}. All rights reserved.</p>
       </div>
     </footer>
@@ -402,25 +449,22 @@ const catalogRows = [
 
 const steps = [
   {
-    title: "카탈로그에서 비교",
-    desc: "카테고리·요금·구독 기업 수를 나란히 놓고 필요한 API를 고릅니다.",
+    title: "비교는 한 화면에서",
+    desc: "카테고리로 후보를 좁히고, 요금과 도입 기업 수를 나란히 놓고 봅니다. 어떤 API가 실제로 쓰이는지는 숫자가 말해줍니다.",
     points: [
       "비전·음성·언어·문서 등 8개 카테고리",
-      "요금과 인기도를 한 화면에서 확인",
+      "요금과 도입 기업 수를 나란히 비교",
     ],
   },
   {
-    title: "크레딧으로 구독 결제",
-    desc: "별도 계약 없이 보유 크레딧을 차감해 구독을 시작합니다.",
+    title: "결제는 크레딧 한 번으로",
+    desc: "계약서를 주고받을 필요가 없습니다. 보유 크레딧에서 구독료가 빠져나가고, 쓴 만큼은 기업 단위로 기록됩니다.",
     points: ["신청과 동시에 결제 요청 생성", "기업별 결제 내역 자동 기록"],
   },
   {
-    title: "결제 승인되면 바로 활성화",
-    desc: "결제가 승인되는 순간 구독 상태가 ACTIVE로 바뀌어 사용할 수 있습니다.",
-    points: [
-      "PENDING에서 ACTIVE로 자동 전환",
-      "내 구독 목록에서 상태를 바로 확인",
-    ],
+    title: "승인되는 순간 켜집니다",
+    desc: "결제가 확인되면 구독 상태가 PENDING에서 ACTIVE로 넘어갑니다. 승인 담당자를 기다릴 일이 없습니다.",
+    points: ["결제 이벤트를 받아 상태 자동 전환", "내 구독 목록에서 바로 확인"],
   },
 ];
 
@@ -453,6 +497,8 @@ function readScroll() {
   if (!reduceMotion) {
     heroParallax.value = Math.min(window.scrollY * 0.08, 48);
   }
+
+  readStory();
   ticking = false;
 }
 
@@ -493,13 +539,53 @@ function runCountUp() {
   requestAnimationFrame(tick);
 }
 
-/* ── 스크롤 스토리 활성 단계 ── */
+/* ── 스크롤 스토리 ──
+ * 단계 전환을 IntersectionObserver로 끊어 받으면 레일이 툭툭 끊긴다.
+ * 스텝 목록 전체를 기준으로 0~1 진행도를 계산해 레일은 연속으로,
+ * 활성 단계는 그 진행도에서 파생시킨다. */
 const activeStep = ref(0);
+const storyProgress = ref(0);
 const stepEls = ref([]);
+const stepsEl = ref(null);
+
+function readStory() {
+  const el = stepsEl.value;
+  if (!el) return;
+
+  const rect = el.getBoundingClientRect();
+  if (!rect.height) return;
+
+  const anchor = window.innerHeight * 0.5;
+  const raw = (anchor - rect.top) / rect.height;
+  const progress = Math.min(Math.max(raw, 0), 1);
+
+  storyProgress.value = progress;
+  activeStep.value = Math.min(
+    steps.length - 1,
+    Math.max(0, Math.floor(progress * steps.length)),
+  );
+}
+
+function scrollToStep(index) {
+  const el = stepEls.value?.[index];
+  el?.scrollIntoView({
+    behavior: reduceMotion ? "auto" : "smooth",
+    block: "center",
+  });
+}
+
+/* 커서를 따라가는 카드 하이라이트 */
+function onCardMove(event) {
+  if (reduceMotion) return;
+
+  const el = event.currentTarget;
+  const rect = el.getBoundingClientRect();
+  el.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+  el.style.setProperty("--my", `${event.clientY - rect.top}px`);
+}
 
 let revealObserver = null;
 let statsObserver = null;
-let stepObserver = null;
 
 onMounted(() => {
   readScroll();
@@ -535,20 +621,6 @@ onMounted(() => {
     { threshold: 0.4 },
   );
   if (statsEl.value) statsObserver.observe(statsEl.value);
-
-  // 화면 중앙에 걸린 단계를 활성으로 표시
-  stepObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        activeStep.value = Number(entry.target.dataset.step);
-      });
-    },
-    { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-  );
-  if (Array.isArray(stepEls.value)) {
-    stepEls.value.forEach((el) => el && stepObserver.observe(el));
-  }
 });
 
 onUnmounted(() => {
@@ -556,15 +628,14 @@ onUnmounted(() => {
   window.removeEventListener("resize", onScroll);
   revealObserver?.disconnect();
   statsObserver?.disconnect();
-  stepObserver?.disconnect();
 });
 </script>
 
 <style scoped>
 .landing {
-  /* 다크 팔레트 */
-  --d-bg: #0a0b0d;
-  --d-bg-alt: #101217;
+  /* 다크 팔레트 — 남색 기운을 뺀 중성 먹색에 SK 색상만 얹는다 */
+  --d-bg: #0b0b0c;
+  --d-bg-alt: #131113;
   --d-line: rgba(255, 255, 255, 0.09);
   --d-line-2: rgba(255, 255, 255, 0.16);
   --d-surface: rgba(255, 255, 255, 0.035);
@@ -572,7 +643,7 @@ onUnmounted(() => {
   --d-text: #ffffff;
   --d-text-2: rgba(255, 255, 255, 0.58);
   --d-text-3: rgba(255, 255, 255, 0.4);
-  --d-cyan: #7dd3fc;
+  --d-accent: var(--sk-orange);
 
   background: var(--d-bg);
   color: var(--d-text);
@@ -621,18 +692,23 @@ onUnmounted(() => {
   }
 }
 
+/* 초점이 맞듯 흐릿한 상태에서 올라오게 하면 훨씬 부드럽다 */
 .reveal {
   opacity: 0;
-  transform: translateY(26px);
+  transform: translateY(28px) scale(0.985);
+  filter: blur(6px);
   transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--d, 0ms);
+  will-change: transform, opacity, filter;
 }
 
 .reveal.in {
   opacity: 1;
   transform: none;
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -642,6 +718,12 @@ onUnmounted(() => {
   .reveal {
     opacity: 1;
     transform: none;
+    filter: none;
+    transition: none;
+  }
+  .story-rail i,
+  .panel,
+  .story-step {
     transition: none;
   }
 }
@@ -673,19 +755,19 @@ onUnmounted(() => {
   );
 }
 
+/* 히어로 뒤 컬러 블롭은 걷어내고, 화면 밖에서 들어오는 조명처럼만 남긴다 */
 .hero-glow {
   position: absolute;
-  top: -280px;
-  left: 50%;
-  width: 1000px;
-  height: 620px;
-  transform: translateX(-52%);
+  top: -420px;
+  left: 62%;
+  width: 760px;
+  height: 640px;
   background: radial-gradient(
     ellipse at center,
-    rgba(49, 130, 246, 0.22),
-    transparent 62%
+    rgba(234, 0, 44, 0.13),
+    transparent 68%
   );
-  filter: blur(20px);
+  filter: blur(40px);
 }
 
 .hero-inner {
@@ -715,8 +797,8 @@ onUnmounted(() => {
 
 .eyebrow-rule {
   width: 28px;
-  height: 1px;
-  background: var(--d-line-2);
+  height: 2px;
+  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
 }
 
 .hero-title {
@@ -752,16 +834,20 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 15px 26px;
-  border-radius: 12px;
-  background: #fff;
-  color: var(--d-bg);
+  border-radius: 10px;
+  background: var(--sk-red);
+  color: #fff;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    background 0.2s ease;
+  box-shadow: 0 10px 26px -10px rgba(234, 0, 44, 0.55);
+}
+
+.cta-solid:hover {
+  background: var(--sk-red-dark);
 }
 
 .cta-solid svg {
@@ -781,7 +867,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 15px 22px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--d-line-2);
   color: rgba(255, 255, 255, 0.82);
   font-size: 15px;
@@ -801,7 +887,7 @@ onUnmounted(() => {
 }
 
 .console {
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(20, 22, 26, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(12px);
@@ -890,13 +976,13 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.32);
 }
 .c-cmd {
-  color: var(--d-cyan);
+  color: var(--sk-orange);
 }
 .c-str {
-  color: #fcd34d;
+  color: #e8b25f;
 }
 .c-key {
-  color: #a5b4fc;
+  color: #f0a8b4;
 }
 .c-num {
   color: #f0abfc;
@@ -961,16 +1047,17 @@ onUnmounted(() => {
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--d-cyan);
+  color: var(--d-accent);
   margin-bottom: 10px;
 }
 
+/* 굵기를 전부 800으로 맞추면 위계가 사라진다. 디스플레이만 800, 나머지는 700 */
 .section-title {
-  font-size: 32px;
-  font-weight: 800;
+  font-size: 36px;
+  font-weight: 700;
   letter-spacing: -0.035em;
   color: var(--d-text);
-  line-height: 1.35;
+  line-height: 1.32;
 }
 
 .section-head {
@@ -1015,23 +1102,54 @@ onUnmounted(() => {
 }
 
 .api-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   padding: 26px;
-  border-radius: 18px;
+  border-radius: 12px;
   border: 1px solid var(--d-line);
   background: var(--d-surface);
+  overflow: hidden;
   transition:
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.25s ease,
-    border-color 0.25s ease;
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .api-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   background: var(--d-surface-2);
   border-color: var(--d-line-2);
+}
+
+/* 커서를 따라오는 하이라이트 */
+.api-card::before,
+.role-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, 0px),
+    rgba(244, 119, 37, 0.12),
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.api-card:hover::before,
+.role-card:hover::before {
+  opacity: 1;
+}
+
+.api-card > *,
+.role-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .api-card-head {
@@ -1127,6 +1245,14 @@ onUnmounted(() => {
   margin-bottom: 8px;
 }
 
+.section-sub {
+  margin-top: 14px;
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--d-text-2);
+  max-width: 44ch;
+}
+
 .story-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
@@ -1141,6 +1267,10 @@ onUnmounted(() => {
 .stage {
   position: sticky;
   top: 96px;
+}
+
+.stage-panels {
+  position: relative;
   height: 420px;
 }
 
@@ -1149,23 +1279,65 @@ onUnmounted(() => {
   inset: 0;
   display: flex;
   flex-direction: column;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--d-surface);
   border: 1px solid var(--d-line);
   backdrop-filter: blur(10px);
   overflow: hidden;
   opacity: 0;
-  transform: translateY(16px) scale(0.985);
+  transform: translateY(28px) scale(0.955);
+  filter: blur(10px);
   pointer-events: none;
   transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.72s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity, filter;
 }
 
 .panel.on {
   opacity: 1;
   transform: none;
+  filter: none;
   pointer-events: auto;
+}
+
+/* 단계 인디케이터 */
+.stage-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.stage-dot {
+  width: 34px;
+  height: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  transition: background 0.4s ease;
+}
+
+.stage-dot:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.dot-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stage-dot.on .dot-fill {
+  transform: scaleX(1);
 }
 
 .panel-bar {
@@ -1299,7 +1471,7 @@ onUnmounted(() => {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #3182f6, #7dd3fc);
+  background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
   transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
 }
 
@@ -1383,38 +1555,92 @@ onUnmounted(() => {
 
 /* 설명 영역 */
 .story-steps {
+  position: relative;
+  padding-left: 30px;
+}
+
+/* 스크롤 진행도를 그대로 따라 차오르는 레일 */
+.story-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--d-line);
+  overflow: hidden;
+}
+
+.story-rail i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--sk-red), var(--sk-orange));
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  transition: transform 0.18s linear;
+}
+
+.story-list {
   list-style: none;
 }
 
 .story-step {
+  position: relative;
   min-height: 74vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 24px 0 24px 26px;
-  border-left: 2px solid var(--d-line);
-  opacity: 0.32;
+  padding: 24px 0;
+  opacity: 0.28;
+  filter: blur(2px);
+  transform: translateY(8px);
   transition:
-    opacity 0.45s ease,
-    border-color 0.45s ease;
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .story-step.on {
   opacity: 1;
-  border-left-color: var(--color-primary);
+  filter: none;
+  transform: none;
+}
+
+/* 레일 위에 얹히는 단계 마커 */
+.step-dot {
+  position: absolute;
+  left: -34px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--d-bg);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  transition:
+    border-color 0.45s ease,
+    box-shadow 0.45s ease,
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.story-step.on .step-dot {
+  border-color: var(--sk-orange);
+  transform: scale(1.25);
+  box-shadow: 0 0 0 5px rgba(244, 119, 37, 0.16);
 }
 
 .step-num {
   font-family: var(--font-mono);
   font-size: 12.5px;
-  color: var(--d-cyan);
+  color: var(--d-accent);
   margin-bottom: 14px;
 }
 
 .story-step h3 {
   font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: #fff;
   margin-bottom: 12px;
 }
@@ -1424,6 +1650,7 @@ onUnmounted(() => {
   line-height: 1.75;
   color: var(--d-text-2);
   margin-bottom: 20px;
+  max-width: 38ch;
 }
 
 .step-points {
@@ -1438,6 +1665,20 @@ onUnmounted(() => {
   padding-left: 18px;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.story-step.on .step-points li {
+  opacity: 1;
+  transform: none;
+}
+
+.story-step.on .step-points li:nth-child(2) {
+  transition-delay: 90ms;
 }
 
 .step-points li::before {
@@ -1449,10 +1690,11 @@ onUnmounted(() => {
   height: 5px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
+  transition: background 0.45s ease;
 }
 
 .story-step.on .step-points li::before {
-  background: var(--d-cyan);
+  background: var(--d-accent);
 }
 
 /* ── 역할별 ── */
@@ -1469,21 +1711,38 @@ onUnmounted(() => {
 }
 
 .role-card {
+  position: relative;
   padding: 40px;
-  border-radius: 22px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   background: var(--d-surface);
   border: 1px solid var(--d-line);
+  overflow: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease;
+}
+
+.role-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--d-line-2);
+}
+
+.role-desc {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--d-text-2);
+  margin: -14px 0 24px;
 }
 
 .role-accent {
   background: linear-gradient(
     160deg,
-    rgba(49, 130, 246, 0.16) 0%,
+    rgba(234, 0, 44, 0.14) 0%,
     rgba(255, 255, 255, 0.03) 55%
   );
-  border-color: rgba(49, 130, 246, 0.28);
+  border-color: rgba(234, 0, 44, 0.3);
 }
 
 .role-tag {
@@ -1491,14 +1750,14 @@ onUnmounted(() => {
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--d-cyan);
+  color: var(--d-accent);
   margin-bottom: 14px;
 }
 
 .role-card h3 {
   font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.4;
   color: #fff;
   margin-bottom: 24px;
@@ -1562,19 +1821,19 @@ onUnmounted(() => {
   border-top: 1px solid var(--d-line);
 }
 
+/* 블롭 대신 SK 브랜드 그라데이션 1px 규칙으로 섹션을 연다 */
 .cta-glow {
   position: absolute;
-  bottom: -320px;
-  left: 50%;
-  width: 900px;
-  height: 560px;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    ellipse at center,
-    rgba(49, 130, 246, 0.26),
-    transparent 62%
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--sk-red),
+    var(--sk-orange) 55%,
+    transparent
   );
-  filter: blur(20px);
 }
 
 .cta-inner {
@@ -1613,10 +1872,27 @@ onUnmounted(() => {
 }
 
 .footer-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
   font-size: 15px;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: #fff;
+}
+
+.footer-sk {
+  color: var(--sk-red);
+}
+
+.footer-brand em {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--d-text-3);
 }
 
 .footer-copy {
@@ -1648,14 +1924,20 @@ onUnmounted(() => {
   .story-visual {
     position: sticky;
     top: 76px;
-    height: 320px;
     z-index: 2;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    background: var(--d-bg);
+    padding-bottom: 12px;
   }
   .stage {
     position: relative;
     top: auto;
-    height: 100%;
+  }
+  .stage-panels {
+    height: 300px;
+  }
+  .stage-dots {
+    margin-top: 14px;
   }
   .story-steps {
     position: relative;
