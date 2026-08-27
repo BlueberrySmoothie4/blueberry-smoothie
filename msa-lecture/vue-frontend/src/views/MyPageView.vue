@@ -198,7 +198,6 @@ import AppSideRail from "@/components/AppSideRail.vue";
 import ProductCard from "@/components/ProductCard.vue";
 import { useAuthStore } from "@/store/auth.js";
 import { useProductStore } from "@/store/product.js";
-import { subscriptionApi } from "@/api/subscription.js";
 import { recommendApi } from "@/api/recommend.js";
 import { productApi } from "@/api/product.js";
 import { productStatus } from "@/config/catalog.js";
