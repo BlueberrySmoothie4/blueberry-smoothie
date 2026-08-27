@@ -17,7 +17,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     /**
-     * POST /payments/internal/request - 내부 결제 요청 (Enrollment Service 호출)
+     * POST /payments/internal/request - 내부 결제 요청 (Subscription Service(enrollment-service) 호출)
      */
     @PostMapping("/internal/request")
     public ResponseEntity<PaymentDto.InternalPaymentResult> processInternalPayment(

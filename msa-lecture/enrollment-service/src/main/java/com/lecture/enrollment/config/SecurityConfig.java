@@ -53,7 +53,7 @@ public class SecurityConfig {
 //                     "/swagger-ui.html"
 //                 ).permitAll()
 //                 // 내부 서비스 호출 (Client Credentials)
-//                 .requestMatchers("/api/enrollments/internal/**").hasAuthority("SCOPE_service.read")
+//                 .requestMatchers("/api/subscriptions/internal/**").hasAuthority("SCOPE_service.read")
 //                 // 나머지는 인증 필요
 //                 .anyRequest().authenticated()
 //             )

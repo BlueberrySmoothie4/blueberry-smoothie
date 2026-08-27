@@ -1,21 +1,21 @@
 <template>
-  <router-link :to="`/courses/${course.id}`" class="course-card">
+  <router-link :to="`/products/${product.id}`" class="course-card">
     <!-- 썸네일 -->
     <div class="card-thumb" :class="thumbBg">
-      <img v-if="thumbSrc" :src="thumbSrc" :alt="course.title" class="thumb-img" />
-      <div v-else class="thumb-placeholder">{{ course.category?.charAt(0) }}</div>
+      <img v-if="thumbSrc" :src="thumbSrc" :alt="product.title" class="thumb-img" />
+      <div v-else class="thumb-placeholder">{{ product.category?.charAt(0) }}</div>
     </div>
 
     <!-- 내용 -->
     <div class="card-body">
-      <span class="badge" :class="badgeClass">{{ course.category }}</span>
-      <h3 class="card-title">{{ course.title }}</h3>
+      <span class="badge" :class="badgeClass">{{ product.category }}</span>
+      <h3 class="card-title">{{ product.title }}</h3>
       <div class="card-meta">
-        <span class="instructor">{{ course.instructorName }}</span>
-        <span class="price">₩{{ Number(course.price).toLocaleString() }}</span>
+        <span class="instructor">{{ product.providerName }}</span>
+        <span class="price">₩{{ Number(product.price).toLocaleString() }}/월</span>
       </div>
       <div class="card-footer">
-        <span class="enrolled">수강생 {{ course.enrollmentCount?.toLocaleString() }}명</span>
+        <span class="enrolled">구독 {{ product.subscriberCount?.toLocaleString() }}개 기업</span>
       </div>
     </div>
   </router-link>
@@ -25,24 +25,26 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  course: { type: Object, required: true }
+  product: { type: Object, required: true }
 })
 
 const categoryConfig = {
-  '백엔드':    { bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'spring_boot' },
-  '프론트엔드':{ bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'vue_js' },
-  'DevOps':   { bg: 'thumb-blue',   badge: 'badge-blue',   thumb: 'docker' },
-  '데이터':   { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
-  'AI':       { bg: 'thumb-pink',   badge: 'badge-pink',   thumb: 'generative_ai' },
+  '비전':     { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
+  '음성':     { bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'vue_js' },
+  '언어':     { bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'spring_boot' },
+  '문서':     { bg: 'thumb-blue',   badge: 'badge-blue',   thumb: 'docker' },
+  '생성형':   { bg: 'thumb-pink',   badge: 'badge-pink',   thumb: 'generative_ai' },
+  '예측':     { bg: 'thumb-blue',   badge: 'badge-blue',   thumb: 'kubernetes' },
+  '이상탐지': { bg: 'thumb-amber',  badge: 'badge-amber',  thumb: 'docker' },
 }
 
-const config = computed(() => categoryConfig[props.course.category] || { bg: 'thumb-gray', badge: 'badge-gray' })
+const config = computed(() => categoryConfig[props.product.category] || { bg: 'thumb-gray', badge: 'badge-gray' })
 const thumbBg = computed(() => config.value.bg)
 const badgeClass = computed(() => config.value.badge)
 
 // 썸네일 이미지 동적 import
 const thumbSrc = computed(() => {
-  const key = props.course.thumbnail || config.value.thumb
+  const key = props.product.thumbnail || config.value.thumb
   if (!key) return null
   try {
     return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href

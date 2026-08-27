@@ -19,27 +19,27 @@ const routes = [
     component: () => import('@/views/CallbackView.vue')
   },
   {
-    path: '/courses',
-    name: 'CourseList',
-    component: () => import('@/views/CourseListView.vue'),
+    path: '/products',
+    name: 'ProductList',
+    component: () => import('@/views/ProductListView.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/courses/new',
-    name: 'CourseCreate',
-    component: () => import('@/views/CourseCreateView.vue'),
-    meta: { requiresAuth: true, instructorOnly: true }
+    path: '/products/new',
+    name: 'ProductCreate',
+    component: () => import('@/views/ProductCreateView.vue'),
+    meta: { requiresAuth: true, providerOnly: true }
   },
   {
-    path: '/courses/:id(\\d+)',
-    name: 'CourseDetail',
-    component: () => import('@/views/CourseDetailView.vue'),
+    path: '/products/:id(\\d+)',
+    name: 'ProductDetail',
+    component: () => import('@/views/ProductDetailView.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/enrollments',
-    name: 'Enrollment',
-    component: () => import('@/views/EnrollmentView.vue'),
+    path: '/subscriptions',
+    name: 'Subscription',
+    component: () => import('@/views/SubscriptionView.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -67,11 +67,11 @@ router.beforeEach((to) => {
   }
 
   if (to.meta.guestOnly && auth.isAuthenticated) {
-    return { name: 'CourseList' }
+    return { name: 'ProductList' }
   }
 
-  if (to.meta.instructorOnly && auth.user?.role !== 'INSTRUCTOR') {
-    return { name: 'CourseList' }
+  if (to.meta.providerOnly && auth.user?.role !== 'PROVIDER') {
+    return { name: 'ProductList' }
   }
 })
 

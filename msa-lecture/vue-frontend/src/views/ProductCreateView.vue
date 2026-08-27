@@ -9,19 +9,19 @@
           <div class="sidebar-label">메뉴</div>
 
           <router-link
-            to="/courses"
+            to="/products"
             class="sidebar-item"
-            :class="{ active: $route.path === '/courses' }"
+            :class="{ active: $route.path === '/products' }"
           >
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">🧩</span> API 상품 목록
           </router-link>
 
           <router-link
-            to="/courses/new"
+            to="/products/new"
             class="sidebar-item"
-            :class="{ active: $route.path === '/courses/new' }"
+            :class="{ active: $route.path === '/products/new' }"
           >
-            <span class="si-icon">✍️</span> 강의 등록
+            <span class="si-icon">✍️</span> API 상품 등록
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item">
@@ -44,33 +44,33 @@
       <main class="main-content">
         <div class="content-header">
           <div>
-            <h1 class="page-title">강의 등록</h1>
-            <p class="page-subtitle">강사 계정으로 새로운 강의를 등록합니다.</p>
+            <h1 class="page-title">API 상품 등록</h1>
+            <p class="page-subtitle">제공사 계정으로 새로운 API 상품을 등록합니다.</p>
           </div>
         </div>
 
         <div class="form-card">
           <form class="course-form" @submit.prevent="handleSubmit">
             <div class="form-group">
-              <label class="form-label" for="title">강의명</label>
+              <label class="form-label" for="title">API 상품명</label>
               <input
                 id="title"
                 v-model.trim="form.title"
                 type="text"
                 class="form-input"
-                placeholder="예: Cloud Native App기반 Web Service 개발"
+                placeholder="예: 제조 설비 불량 검출 API"
                 maxlength="100"
               />
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="description">강의 설명</label>
+              <label class="form-label" for="description">상품 설명</label>
               <textarea
                 id="description"
                 v-model.trim="form.description"
                 class="form-textarea"
                 rows="6"
-                placeholder="강의 소개, 학습 목표, 대상 등을 입력해 주세요."
+                placeholder="제공 기능, 입출력 형식, 정확도, 권장 사용 사례 등을 입력해 주세요."
               ></textarea>
             </div>
 
@@ -90,7 +90,7 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="price">가격</label>
+                <label class="form-label" for="price">월 구독료</label>
                 <input
                   id="price"
                   v-model.number="form.price"
@@ -98,7 +98,7 @@
                   min="0"
                   step="1000"
                   class="form-input"
-                  placeholder="예: 50000"
+                  placeholder="예: 50000 (원/월)"
                 />
               </div>
             </div>
@@ -116,13 +116,13 @@
             </div>
 
             <div class="form-actions">
-              <router-link to="/courses" class="btn btn-ghost">
+              <router-link to="/products" class="btn btn-ghost">
                 취소
               </router-link>
 
               <button type="submit" class="btn btn-primary" :disabled="submitting">
                 <span v-if="submitting">등록 중...</span>
-                <span v-else>강의 등록</span>
+                <span v-else>API 상품 등록</span>
               </button>
             </div>
           </form>
@@ -136,7 +136,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import { courseApi } from '@/api/course.js'
+import { productApi } from '@/api/product.js'
 import { useAuthStore } from '@/store/auth.js'
 
 const router = useRouter()
@@ -155,10 +155,14 @@ const submitError = ref('')
 const submitSuccess = ref('')
 
 const categoryOptions = [
-  { label: '백엔드', value: 'BACKEND' },
-  { label: '프론트엔드', value: 'FRONTEND' },
-  { label: 'DevOps', value: 'DEVOPS' },
-  { label: 'AI / 데이터', value: 'DATA_SCIENCE' }
+  { label: '비전 (이미지·영상 인식)', value: 'VISION' },
+  { label: '음성 (STT/TTS)', value: 'SPEECH' },
+  { label: '언어 (번역·요약·분류)', value: 'LANGUAGE' },
+  { label: '문서 (OCR·양식 추출)', value: 'DOCUMENT' },
+  { label: '생성형 (텍스트·이미지 생성)', value: 'GENERATIVE' },
+  { label: '예측 (수요·시계열)', value: 'FORECAST' },
+  { label: '이상탐지', value: 'ANOMALY' },
+  { label: '기타', value: 'OTHER' }
 ]
 
 function handleLogout() {
@@ -169,18 +173,18 @@ function handleLogout() {
 function validateForm() {
   validationError.value = ''
 
-  if (!auth.user || auth.user.role !== 'INSTRUCTOR') {
-    validationError.value = '강사 계정만 강의를 등록할 수 있습니다.'
+  if (!auth.user || auth.user.role !== 'PROVIDER') {
+    validationError.value = '제공사 계정만 API 상품을 등록할 수 있습니다.'
     return false
   }
 
   if (!form.title) {
-    validationError.value = '강의명을 입력해 주세요.'
+    validationError.value = 'API 상품명을 입력해 주세요.'
     return false
   }
 
   if (!form.description) {
-    validationError.value = '강의 설명을 입력해 주세요.'
+    validationError.value = '상품 설명을 입력해 주세요.'
     return false
   }
 
@@ -190,13 +194,13 @@ function validateForm() {
   }
 
   if (form.price === null || form.price === undefined || form.price === '') {
-    validationError.value = '가격을 입력해 주세요.'
+    validationError.value = '월 구독료를 입력해 주세요.'
     return false
   }
 
   const price = Number(form.price)
   if (Number.isNaN(price) || price < 0) {
-    validationError.value = '가격은 0 이상의 숫자로 입력해 주세요.'
+    validationError.value = '월 구독료는 0 이상의 숫자로 입력해 주세요.'
     return false
   }
 
@@ -219,29 +223,29 @@ async function handleSubmit() {
       price: Number(form.price)
     }
 
-    const res = await courseApi.create(payload)
-    console.log('[CourseCreate] create response =', res.data)
+    const res = await productApi.create(payload)
+    console.log('[ProductCreate] create response =', res.data)
 
-    submitSuccess.value = '강의가 성공적으로 등록되었습니다.'
+    submitSuccess.value = 'API 상품이 성공적으로 등록되었습니다.'
 
-    const createdCourseId =
+    const createdProductId =
       res.data?.data?.id ??
       res.data?.id
 
-    if (createdCourseId) {
+    if (createdProductId) {
       setTimeout(() => {
-        router.push(`/courses/${createdCourseId}`)
+        router.push(`/products/${createdProductId}`)
       }, 500)
     } else {
       setTimeout(() => {
-        router.push('/courses')
+        router.push('/products')
       }, 500)
     }
   } catch (error) {
-    console.error('[CourseCreate] create failed:', error)
+    console.error('[ProductCreate] create failed:', error)
     submitError.value =
       error.response?.data?.message ||
-      '강의 등록에 실패했습니다.'
+      'API 상품 등록에 실패했습니다.'
   } finally {
     submitting.value = false
   }

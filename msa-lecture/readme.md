@@ -2,6 +2,13 @@
 
 # This practice code is not a completed commercial version but has been developed for educational purposes; supplementation is required depending on the deployment objective for use as a commercial service.
 
+# 도메인
+AI API 마켓플레이스 (Blueberry Smoothie)
+- 컨테이너/Eureka 등록명은 실습 원본 그대로 course-service / enrollment-service 를 유지한다.
+  실제 도메인은 각각 API 상품 카탈로그 / 구독이다.
+- api-gateway 라우팅은 prebuilt 이미지라서 ./api-gateway-config/application.yml 을
+  /app/config/application.yml 로 마운트해 덮어쓴다.
+
 # 전체 백엔드 기동 순서 (depends_on 기반)
 MariaDB / Kafka (인프라)
   → Eureka (서비스 등록)
@@ -14,6 +21,9 @@ docker load -i infra-images.tar
 
 # msa-lecture/auth-server:1.0 등 태그 확인
 docker images
+
+## 도메인 치환 후 첫 기동은 반드시 볼륨을 지우고 시작 (기존 enum/테이블이 남아 있으면 기동 실패)
+docker compose down -v
 
 ## 프로젝트 루트에서 (초기 트러블슈팅/리빌드 고려, 캐시 없이 빌드, 컨테이너는 묶어서 백그라운드로 실행)
 docker compose build --no-cache

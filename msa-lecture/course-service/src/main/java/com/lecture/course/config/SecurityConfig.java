@@ -52,12 +52,12 @@ public class SecurityConfig {
 //                     "/swagger-ui/**",
 //                     "/swagger-ui.html"
 //                 ).permitAll()
-//                 // 강의 목록/상세 조회는 인증 불필요
-//                 .requestMatchers(HttpMethod.GET, "/api/courses", "/api/courses/**").permitAll()
+//                 // 상품 목록/상세 조회는 인증 불필요
+//                 .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
 //                 // 내부 서비스 호출 (Client Credentials)
-//                 .requestMatchers("/api/courses/internal/**").hasAuthority("SCOPE_service.read")
-//                 // 강의 등록은 INSTRUCTOR만
-//                 .requestMatchers(HttpMethod.POST, "/api/courses").hasAuthority("ROLE_INSTRUCTOR")
+//                 .requestMatchers("/api/products/internal/**").hasAuthority("SCOPE_service.read")
+//                 // 상품 등록은 PROVIDER만
+//                 .requestMatchers(HttpMethod.POST, "/api/products").hasAuthority("ROLE_PROVIDER")
 //                 .anyRequest().authenticated()
 //             )
 //             .oauth2ResourceServer(oauth2 -> oauth2

@@ -8,19 +8,19 @@
           <div class="sidebar-label">메뉴</div>
 
           <router-link
-            to="/courses"
+            to="/products"
             class="sidebar-item"
-            :class="{ active: $route.path === '/courses' }"
+            :class="{ active: $route.path === '/products' }"
           >
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">🧩</span> API 상품 목록
           </router-link>
 
           <router-link
-            v-if="!isInstructor"
-            to="/enrollments"
+            v-if="!isProvider"
+            to="/subscriptions"
             class="sidebar-item"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 내 구독 목록
           </router-link>
 
           <router-link
@@ -46,18 +46,18 @@
       <main class="main-content">
         <div class="content-header">
           <div>
-            <h1 class="page-title">강의 목록</h1>
-            <p class="page-subtitle" v-if="isInstructor">
-              강사 계정으로 등록된 강의를 확인하고 새 강의를 추가할 수 있습니다.
+            <h1 class="page-title">API 상품 목록</h1>
+            <p class="page-subtitle" v-if="isProvider">
+              제공사 계정으로 등록된 API 상품을 확인하고 새 상품을 추가할 수 있습니다.
             </p>
           </div>
 
           <router-link
-            v-if="isInstructor"
-            to="/courses/new"
+            v-if="isProvider"
+            to="/products/new"
             class="btn btn-primary create-course-btn"
           >
-            강의 등록
+            API 상품 등록
           </router-link>
         </div>
 
@@ -85,25 +85,25 @@
           </div>
         </div>
 
-        <!-- 강의 그리드 -->
-        <div v-else-if="filteredCourses.length" class="course-grid fade-in">
-          <CourseCard
-            v-for="course in filteredCourses"
-            :key="course.id"
-            :course="course"
+        <!-- API 상품 그리드 -->
+        <div v-else-if="filteredProducts.length" class="course-grid fade-in">
+          <ProductCard
+            v-for="product in filteredProducts"
+            :key="product.id"
+            :product="product"
           />
         </div>
 
         <!-- 빈 상태 -->
         <div v-else class="empty-state">
-          <p>해당 카테고리의 강의가 없습니다.</p>
+          <p>해당 카테고리의 API 상품이 없습니다.</p>
 
           <router-link
-            v-if="isInstructor"
-            to="/courses/new"
+            v-if="isProvider"
+            to="/products/new"
             class="btn btn-primary empty-action-btn"
           >
-            첫 강의 등록하기
+            첫 API 상품 등록하기
           </router-link>
         </div>
       </main>
@@ -115,27 +115,27 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import CourseCard from '@/components/CourseCard.vue'
-import { useCourseStore } from '@/store/course.js'
+import ProductCard from '@/components/ProductCard.vue'
+import { useProductStore } from '@/store/product.js'
 import { useAuthStore } from '@/store/auth.js'
 
 const router = useRouter()
-const courseStore = useCourseStore()
+const productStore = useProductStore()
 const auth = useAuthStore()
 
-const { categories, loading } = courseStore
+const { categories, loading } = productStore
 
-const selectedCategory = computed(() => courseStore.selectedCategory)
-const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
+const selectedCategory = computed(() => productStore.selectedCategory)
+const isProvider = computed(() => auth.user?.role === 'PROVIDER')
 
-const filteredCourses = computed(() => {
-  if (!Array.isArray(courseStore.courses)) return []
-  if (selectedCategory.value === '전체') return courseStore.courses
-  return courseStore.courses.filter(c => c.category === selectedCategory.value)
+const filteredProducts = computed(() => {
+  if (!Array.isArray(productStore.products)) return []
+  if (selectedCategory.value === '전체') return productStore.products
+  return productStore.products.filter(p => p.category === selectedCategory.value)
 })
 
 function selectCategory(cat) {
-  courseStore.setCategory(cat)
+  productStore.setCategory(cat)
 }
 
 function handleLogout() {
@@ -144,7 +144,7 @@ function handleLogout() {
 }
 
 onMounted(() => {
-  courseStore.fetchCourses()
+  productStore.fetchProducts()
 })
 </script>
 
@@ -284,7 +284,7 @@ onMounted(() => {
   border-color: var(--color-primary);
 }
 
-/* 강의 그리드 */
+/* API 상품 그리드 */
 .course-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

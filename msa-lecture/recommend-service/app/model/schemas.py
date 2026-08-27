@@ -5,38 +5,39 @@ from decimal import Decimal
 from datetime import datetime
 
 
-class CourseCategory(str, Enum):
-    BACKEND = "BACKEND"
-    FRONTEND = "FRONTEND"
-    DEVOPS = "DEVOPS"
-    DATA_SCIENCE = "DATA_SCIENCE"
-    MOBILE = "MOBILE"
-    SECURITY = "SECURITY"
-    DATABASE = "DATABASE"
+class ProductCategory(str, Enum):
+    VISION = "VISION"           # 이미지·영상 인식
+    SPEECH = "SPEECH"           # 음성
+    LANGUAGE = "LANGUAGE"       # 자연어 처리
+    DOCUMENT = "DOCUMENT"       # 문서 처리
+    GENERATIVE = "GENERATIVE"   # 생성형
+    FORECAST = "FORECAST"       # 예측·시계열
+    ANOMALY = "ANOMALY"         # 이상 탐지
     OTHER = "OTHER"
 
 
-class CourseResponse(BaseModel):
+class ApiProductResponse(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
-    category: CourseCategory
+    category: ProductCategory
     price: Decimal
-    instructorId: int
-    enrollmentCount: int
+    providerId: int
+    providerName: Optional[str] = None
+    subscriberCount: int
     status: str
     createdAt: Optional[datetime] = None
 
 
-class EnrollmentHistoryResponse(BaseModel):
+class SubscriptionHistoryResponse(BaseModel):
     userId: int
-    activeCourseIds: List[int]
+    activeProductIds: List[int]
 
 
 class RecommendResponse(BaseModel):
     userId: int
-    recommendedCourses: List[CourseResponse]
-    basedOnCategory: Optional[CourseCategory] = None
+    recommendedProducts: List[ApiProductResponse]
+    basedOnCategory: Optional[ProductCategory] = None
     message: str
 
 

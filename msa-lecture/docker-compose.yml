@@ -119,6 +119,10 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://auth-server:9000/oauth2/jwks
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8080
+    volumes:
+      # prebuilt 이미지라 라우팅 규칙을 코드로 못 고쳐서 설정만 덮어쓴다.
+      # /app 이 WorkingDir 이므로 Spring Boot 가 ./config/application.yml 로 인식한다.
+      - ./api-gateway-config/application.yml:/app/config/application.yml:ro
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -248,8 +252,8 @@ services:
       - EUREKA_INSTANCE_HOST=recommend-service
       - JWT_ISSUER_URI=http://localhost:8080
       - JWK_SET_URI=http://auth-server:9000/oauth2/jwks
-      - ENROLLMENT_SERVICE_URL=http://enrollment-service:8083
-      - COURSE_SERVICE_URL=http://course-service:8082
+      - SUBSCRIPTION_SERVICE_URL=http://enrollment-service:8083
+      - PRODUCT_SERVICE_URL=http://course-service:8082
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       eureka-server:
