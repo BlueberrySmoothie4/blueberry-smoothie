@@ -1,47 +1,53 @@
 <template>
   <!--
-    카탈로그 그리드와 완전히 다른 톤으로 간다.
-    카드가 아니라 읽히는 목록이고, 링크·버튼 없이 추천만 한다.
+    카탈로그 그리드와 다른 구역임을 바로 읽히게 한다.
+    왼쪽은 잉크색 칼럼(추천 근거), 오른쪽은 흰 목차. 누를 곳은 없다.
   -->
   <section v-if="items.length" class="rec" aria-label="추천 API">
-    <div class="rec-head">
+    <div class="rec-aside">
       <p class="rec-eyebrow">
         <span class="rec-rule" aria-hidden="true"></span>
-        Recommended for you
+        For you
       </p>
       <h2 class="rec-headline">{{ headline }}</h2>
       <p class="rec-sub">{{ subline }}</p>
+      <p class="rec-count">
+        <span class="tabular">{{ items.length }}</span
+        >건
+      </p>
     </div>
 
     <ol class="rec-list">
-      <li v-for="(item, i) in items" :key="item.id" class="rec-item">
+      <li v-for="(item, i) in items" :key="item.id" class="rec-row">
         <span class="rec-rank" aria-hidden="true">
           {{ String(i + 1).padStart(2, "0") }}
         </span>
 
-        <svg
-          class="rec-glyph"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          v-html="metaOf(item).icon"
-        ></svg>
+        <div class="rec-body">
+          <h3 class="rec-title">{{ item.title }}</h3>
+          <p class="rec-desc">
+            {{ item.description || "설명이 등록되지 않은 API입니다." }}
+          </p>
+        </div>
 
-        <h3 class="rec-title">{{ item.title }}</h3>
-
-        <p class="rec-desc">
-          {{ item.description || "설명이 등록되지 않은 API입니다." }}
-        </p>
-
-        <p class="rec-meta">
-          <span class="rec-cat">{{ metaOf(item).label }}</span>
-          <span class="rec-sep" aria-hidden="true"></span>
-          <span>{{ item.providerName || "제공사 미확인" }}</span>
-        </p>
+        <div class="rec-tail">
+          <span class="rec-cat">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              v-html="metaOf(item).icon"
+            ></svg>
+            {{ metaOf(item).label }}
+          </span>
+          <span class="rec-provider">
+            {{ item.providerName || "제공사 미확인" }}
+          </span>
+        </div>
       </li>
     </ol>
   </section>
@@ -72,7 +78,7 @@ const headline = computed(() =>
 
 const subline = computed(() =>
   basedOnLabel.value
-    ? `구독 중인 API 가운데 ${basedOnLabel.value} 비중이 가장 높았습니다. 같은 영역에서 아직 안 쓰고 계신 API를 골랐습니다.`
+    ? `구독 중인 API 가운데 ${basedOnLabel.value} 비중이 가장 높았습니다. 같은 영역에서 아직 안 쓰고 계신 API입니다.`
     : "아직 구독 이력이 없어 도입 기업이 많은 순서로 골랐습니다.",
 );
 
@@ -101,81 +107,100 @@ onMounted(async () => {
 
 <style scoped>
 .rec {
-  padding: 30px 32px 32px;
-  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  margin-bottom: 30px;
+  overflow: hidden;
   border-radius: var(--radius-xl);
+  background: #fff;
+  box-shadow: 0 18px 40px -28px rgba(11, 11, 12, 0.45);
+}
+
+/* 왼쪽: 왜 이걸 추천하는지 — 잉크색이라 카탈로그와 바로 갈라진다 */
+.rec-aside {
+  position: relative;
+  padding: 32px 28px 28px;
   background: var(--ink);
   color: #fff;
+}
+
+.rec-aside::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--sk-red), var(--sk-orange));
 }
 
 .rec-eyebrow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.09em;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.48);
+  margin-bottom: 16px;
 }
 
 .rec-rule {
-  width: 22px;
+  width: 18px;
   height: 2px;
   background: linear-gradient(90deg, var(--sk-red), var(--sk-orange));
 }
 
 .rec-headline {
-  font-size: 22px;
+  font-family: var(--font-heading);
+  font-size: 23px;
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
   line-height: 1.35;
   color: #fff;
 }
 
 .rec-sub {
-  margin-top: 8px;
-  font-size: 14px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.55);
-  max-width: 62ch;
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.58);
 }
 
-.rec-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  list-style: none;
-  margin-top: 28px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* 카드가 아니라 세로 괘선으로만 나눈다 */
-.rec-item {
-  padding: 22px 24px 4px;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.rec-item:first-child {
-  padding-left: 0;
-  border-left: none;
-}
-
-.rec-rank {
+.rec-count {
+  margin-top: 22px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--sk-orange);
 }
 
-.rec-glyph {
-  display: block;
-  width: 22px;
-  height: 22px;
-  margin: 14px 0 12px;
-  color: rgba(255, 255, 255, 0.75);
+/* 오른쪽: 흰 목차 */
+.rec-list {
+  list-style: none;
+  padding: 8px 32px 8px 28px;
+}
+
+.rec-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0 18px;
+  padding: 18px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.rec-row:first-child {
+  border-top: none;
+}
+
+.rec-rank {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--sk-red);
 }
 
 .rec-title {
@@ -183,51 +208,88 @@ onMounted(async () => {
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.4;
-  color: #fff;
-  margin-bottom: 7px;
+  color: var(--color-text-primary);
 }
 
 .rec-desc {
-  font-size: 13.5px;
+  margin-top: 5px;
+  font-size: 13px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 14px;
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.rec-meta {
+.rec-tail {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.4);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .rec-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
 }
 
-.rec-sep {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.28);
+.rec-cat svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-text-muted);
+}
+
+.rec-provider {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 1100px) {
+  .rec-list {
+    padding: 8px 24px;
+  }
 }
 
 @media (max-width: 900px) {
   .rec {
-    padding: 26px 22px 24px;
-  }
-  .rec-list {
     grid-template-columns: 1fr;
   }
-  .rec-item {
-    padding: 20px 0;
-    border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  .rec-aside {
+    padding: 26px 24px 22px;
   }
-  .rec-item:first-child {
-    border-top: none;
+  .rec-aside::before {
+    width: 100%;
+    height: 3px;
+  }
+  .rec-count {
+    margin-top: 16px;
+  }
+  .rec-list {
+    padding: 4px 22px 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  .rec-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 0 12px;
+  }
+  .rec-tail {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    text-align: left;
   }
 }
 </style>

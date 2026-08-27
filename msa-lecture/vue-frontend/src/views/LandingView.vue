@@ -20,13 +20,13 @@
           </p>
 
           <h1 class="hero-title enter" style="--d: 80ms">
-            기업이 필요한 AI 기능,<br />
-            <span class="hero-title-dim">한 곳에서 찾아보세요</span>
+            필요한 AI API,<br />
+            <span class="hero-title-dim">한번에 비교하세요</span>
           </h1>
 
           <p class="hero-desc enter" style="--d: 160ms">
-            언어·비전·음성 API를 스펙과 요금으로 나란히 비교하고,
-            <br />크레딧으로 결제하면 그 자리에서 구독이 시작됩니다.
+            비전, 음성, 언어, 문서 등
+            <br />다양한 AI API의 요금과 성능을 보여드려요.
           </p>
 
           <div class="hero-actions enter" style="--d: 240ms">
@@ -152,10 +152,10 @@
     <section class="story">
       <div class="wrap story-head reveal">
         <p class="section-label">How it works</p>
-        <h2 class="section-title">찾고, 결제하고, 바로 씁니다</h2>
+        <h2 class="section-title">고르고, 구독하면 바로 연동</h2>
         <p class="section-sub">
-          견적서도 담당자 미팅도 없습니다. 카탈로그에서 고른 API는 결제가
-          확인되는 순간부터 쓸 수 있습니다.
+          복잡한 견적 요청도, 담당자 미팅도 없어요. 구독 즉시 바로 사용할 수
+          있는 API 키가 발급됩니다.
         </p>
       </div>
 
@@ -302,10 +302,10 @@
       <div class="wrap roles-grid">
         <article class="role-card reveal" @mousemove="onCardMove">
           <p class="role-tag">구매 기업</p>
-          <h3>모델을 직접 만들지 않아도 됩니다</h3>
+          <h3>AI 모델, 직접 만들지 마세요</h3>
           <p class="role-desc">
-            학습 데이터도, MLOps 인력도 필요 없습니다. 검증된 API를 골라 제품에
-            붙이기만 하면 됩니다.
+            학습 데이터도, MLOps 인력도 없어도 괜찮아요. 검증된 API만
+            골라주세요.
           </p>
           <ul>
             <li v-for="t in buyerPoints" :key="t">{{ t }}</li>
@@ -332,10 +332,9 @@
           @mousemove="onCardMove"
         >
           <p class="role-tag">API 제공사</p>
-          <h3>만든 모델에 가격표를 붙이세요</h3>
+          <h3>복잡한 영업 없이, 모델만 올리세요</h3>
           <p class="role-desc">
-            영업 조직 없이도 팔 수 있습니다. 상품을 등록하면 카탈로그 노출부터
-            결제·정산까지 이어집니다.
+            복잡한 절차 없이 등록만 하세요. 판매부터 정산까지 한 번에 끝납니다.
           </p>
           <ul>
             <li v-for="t in providerPoints" :key="t">{{ t }}</li>
@@ -362,10 +361,9 @@
     <section class="cta-band">
       <div class="cta-glow" aria-hidden="true"></div>
       <div class="wrap cta-inner reveal">
-        <h2>첫 API는 오늘 붙일 수 있습니다</h2>
+        <h2>지금 바로, </hr> 첫 API를 연동해 보세요</h2>
         <p>
-          가입에는 비용이 들지 않습니다. 구독한 API에 대해서만 크레딧이
-          차감됩니다.
+          복잡한 절차 없이, 무료로 가입하고 첫 API 연동을 시작하세요. 
         </p>
         <router-link to="/login" class="cta-solid cta-solid-light">
           무료로 시작하기
@@ -415,7 +413,7 @@ const featuredApis = [
     id: 1,
     title: "계약서 요약 API",
     category: "문서",
-    desc: "계약서·리포트를 핵심 문단으로 압축합니다.",
+    desc: "긴 계약서와 리포트를 핵심만 요약해 드려요.",
     subs: "1,204",
     price: "₩89,000",
     tone: "tone-amber",
@@ -424,7 +422,7 @@ const featuredApis = [
     id: 2,
     title: "제품 이미지 인식 API",
     category: "비전",
-    desc: "상품 사진에서 카테고리와 속성을 추출합니다.",
+    desc: "상품 사진만 올리면 카테고리를 찾아드려요.",
     subs: "862",
     price: "₩69,000",
     tone: "tone-violet",
@@ -433,7 +431,7 @@ const featuredApis = [
     id: 3,
     title: "마케팅 카피 생성 API",
     category: "생성형",
-    desc: "브랜드 톤에 맞춘 마케팅 문구를 생성합니다.",
+    desc: "브랜드 톤에 딱 맞는 마케팅 문구를 만들어 드려요.",
     subs: "733",
     price: "₩75,000",
     tone: "tone-pink",
@@ -449,35 +447,38 @@ const catalogRows = [
 
 const steps = [
   {
-    title: "비교는 한 화면에서",
-    desc: "카테고리로 후보를 좁히고, 요금과 도입 기업 수를 나란히 놓고 봅니다. 어떤 API가 실제로 쓰이는지는 숫자가 말해줍니다.",
+    title: "한 화면에서 끝내는 비교",
+    desc: "요금과 도입 기업 수를 따로 찾을 필요 없어요. 고민하는 시간은 줄이고, 더 빠르게 선택해 보세요.",
     points: [
       "비전·음성·언어·문서 등 8개 카테고리",
-      "요금과 도입 기업 수를 나란히 비교",
+      "요금과 도입 기업 수 한눈에 비교",
     ],
   },
   {
-    title: "결제는 크레딧 한 번으로",
-    desc: "계약서를 주고받을 필요가 없습니다. 보유 크레딧에서 구독료가 빠져나가고, 쓴 만큼은 기업 단위로 기록됩니다.",
-    points: ["신청과 동시에 결제 요청 생성", "기업별 결제 내역 자동 기록"],
+    title: "구독은 크레딧 하나로 끝",
+    desc: "번거로운 계약서도, 매범 카드 결제할 필요도 없어요. 보유한 크레딧에서 자동 차감한 내용을 투명하게 기록해드려요.",
+    points: [
+      "신청 즉시 크레딧으로 간편 차감",
+      "기업별 이용 내역과 잔액 자동 기록",
+    ],
   },
   {
-    title: "승인되는 순간 켜집니다",
-    desc: "결제가 확인되면 구독 상태가 PENDING에서 ACTIVE로 넘어갑니다. 승인 담당자를 기다릴 일이 없습니다.",
-    points: ["결제 이벤트를 받아 상태 자동 전환", "내 구독 목록에서 바로 확인"],
+    title: "기다림 없이, 즉시 활성화",
+    desc: "담당자 승인을 기다릴 필요 없어요. 구독이 완료되는 즉시 바로 사용해 보세요. ",
+    points: ["구독 즉시 시스템 자동 승인", "내 구독 목록에서 실시간 상태 확인"],
   },
 ];
 
 const buyerPoints = [
-  "카테고리별 스펙·요금 비교",
-  "구독 이력 기반 추천 API",
-  "구독 현황과 결제 상태 확인",
+  "8개 카테고리별 스펙 및 요금 비교",
+  "구독 이력 기반 맞춤 API 추천",
+  "실시간 구독 현황과 크레딧 관리",
 ];
 
 const providerPoints = [
-  "카테고리·요금·스펙을 지정해 상품 등록",
-  "구독 기업 수를 인기도 지표로 확인",
-  "정산까지 이어지는 결제 파이프라인",
+  "카테고리·요금·스펙을 설정 후 즉시 등록",
+  "구독 기업 수로 인기 지표 실시간 확인",
+  "판매 수익 자동 정산 파이프라인 제공",
 ];
 
 const reduceMotion =
