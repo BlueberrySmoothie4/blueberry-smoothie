@@ -283,15 +283,17 @@ async function handlePrimaryAction() {
   }
 }
 
-onMounted(async () => {
-  await productStore.fetchProduct(route.params.id);
+async function loadProduct(id) {
+  await productStore.fetchProduct(id);
   await loadSubscriptionState();
-});
+}
+
+onMounted(() => loadProduct(route.params.id));
 
 watch(
-  () => productStore.selectedProduct?.id,
-  async (id) => {
-    if (id) await loadSubscriptionState();
+  () => route.params.id,
+  (id) => {
+    if (id) loadProduct(id);
   },
 );
 </script>
@@ -382,10 +384,10 @@ watch(
   color: rgba(255, 255, 255, 0.35);
 }
 .c-cmd {
-  color: #7dd3fc;
+  color: var(--sk-orange);
 }
 .c-str {
-  color: #fcd34d;
+  color: #e8b25f;
 }
 
 .code-note {
