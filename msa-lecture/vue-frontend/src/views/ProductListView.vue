@@ -13,7 +13,7 @@
                 {{
                   isProvider
                     ? "등록된 API를 관리하고 새 상품을 추가하세요."
-                    : "카테고리·요금·구독 기업 수를 비교해 맞는 API를 고르세요."
+                    : "카드를 누르면 오른쪽에서 상세 스펙을 확인할 수 있습니다."
                 }}
               </p>
             </div>
@@ -57,6 +57,9 @@
             v-for="product in products"
             :key="product.id"
             :product="product"
+            interactive
+            :selected="selectedId === product.id"
+            @select="openDetail"
           />
         </div>
 
@@ -89,13 +92,20 @@
         </div>
       </div>
     </main>
+
+    <ProductDetailDrawer
+      :open="drawerOpen"
+      :product-id="selectedId"
+      @close="closeDetail"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import AppSideRail from "@/components/AppSideRail.vue";
 import ProductCard from "@/components/ProductCard.vue";
+import ProductDetailDrawer from "@/components/ProductDetailDrawer.vue";
 import { useProductStore } from "@/store/product.js";
 import { useAuthStore } from "@/store/auth.js";
 
@@ -109,8 +119,22 @@ const selectedCategory = computed(() => productStore.selectedCategory);
 const products = computed(() => productStore.products);
 const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
+const drawerOpen = ref(false);
+const selectedId = ref(null);
+
 function selectCategory(cat) {
+  closeDetail();
   productStore.setCategory(cat);
+}
+
+function openDetail(product) {
+  selectedId.value = product.id;
+  drawerOpen.value = true;
+}
+
+function closeDetail() {
+  drawerOpen.value = false;
+  selectedId.value = null;
 }
 
 onMounted(() => {

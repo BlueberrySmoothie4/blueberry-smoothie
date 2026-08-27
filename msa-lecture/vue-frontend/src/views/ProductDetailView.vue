@@ -283,15 +283,17 @@ async function handlePrimaryAction() {
   }
 }
 
-onMounted(async () => {
-  await productStore.fetchProduct(route.params.id);
+async function loadProduct(id) {
+  await productStore.fetchProduct(id);
   await loadSubscriptionState();
-});
+}
+
+onMounted(() => loadProduct(route.params.id));
 
 watch(
-  () => productStore.selectedProduct?.id,
-  async (id) => {
-    if (id) await loadSubscriptionState();
+  () => route.params.id,
+  (id) => {
+    if (id) loadProduct(id);
   },
 );
 </script>
