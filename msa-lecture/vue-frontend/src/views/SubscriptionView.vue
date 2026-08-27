@@ -1,378 +1,291 @@
 <template>
-  <div class="page-wrapper">
-    <AppHeader />
-    <div class="page-layout">
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
+  <div class="app-shell">
+    <AppSideRail />
 
-          <router-link to="/products" class="sidebar-item">
-            <span class="si-icon">🧩</span> API 상품 목록
-          </router-link>
-
-          <router-link
-            v-if="!isProvider"
-            to="/subscriptions"
-            class="sidebar-item active"
-          >
-            <span class="si-icon">✅</span> 내 구독 목록
-          </router-link>
-
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">👤</span> 마이페이지
-          </router-link>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
-      <main class="main-content">
-        <h1 class="page-title">내 구독 목록</h1>
+    <main class="shell-main">
+      <div class="shell-content">
+        <header class="page-header">
+          <p class="page-eyebrow">Subscriptions</p>
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">구독 중인 API</h1>
+              <p class="page-subtitle">
+                신청한 API는 결제가 승인되면 구독 중으로 전환됩니다.
+              </p>
+            </div>
+            <span class="count-badge" v-if="!loading">
+              <span class="tabular">{{ subscriptions.length }}</span
+              >건
+            </span>
+          </div>
+        </header>
 
         <div v-if="loading" class="loading-center">
           <div class="spinner"></div>
         </div>
 
-        <div v-else-if="subscriptions.length" class="enrollment-list fade-in">
-          <div v-for="item in subscriptions" :key="item.id" class="enrollment-card">
-            <div class="enroll-thumb" :class="getThumbBg(item.product?.category)">
-              <img :src="getThumbSrc(item.product)" :alt="item.product?.title" />
+        <div v-else-if="subscriptions.length" class="sub-list">
+          <article
+            v-for="item in subscriptions"
+            :key="item.id"
+            class="sub-item surface"
+          >
+            <span class="cat-tile" :class="styleOf(item).tone">
+              {{ categoryOf(item).charAt(0) }}
+            </span>
+
+            <div class="sub-info">
+              <div class="sub-top">
+                <span class="badge" :class="styleOf(item).badge">
+                  {{ categoryOf(item) }}
+                </span>
+                <span class="status-pill" :class="statusOf(item).pill">
+                  <span class="status-dot"></span>
+                  {{ statusOf(item).label }}
+                </span>
+              </div>
+
+              <h3 class="sub-title">
+                {{ item.product?.title || `상품 #${item.productId}` }}
+              </h3>
+              <p class="sub-provider">
+                {{ item.product?.providerName || "제공사 미확인" }}
+              </p>
+
+              <dl class="sub-meta">
+                <div>
+                  <dt>구독 번호</dt>
+                  <dd class="mono">#{{ item.id }}</dd>
+                </div>
+                <div>
+                  <dt>신청일</dt>
+                  <dd class="mono">{{ formatDate(item.createdAt) }}</dd>
+                </div>
+                <div>
+                  <dt>월 요금</dt>
+                  <dd class="tabular">
+                    ₩{{ formatPrice(item.product?.price) }}
+                  </dd>
+                </div>
+              </dl>
             </div>
 
-            <div class="enroll-info">
-              <span class="badge" :class="getBadge(item.product?.category)">
-                {{ item.product?.category }}
-              </span>
-              <h3 class="enroll-title">{{ item.product?.title }}</h3>
-              <p class="enroll-instructor">제공사: {{ item.product?.providerName }}</p>
-            </div>
-
-            <div class="enroll-status">
-              <span
-                :class="[
-                  'status-badge',
-                  item.status === 'ACTIVE' ? 'status-active' : 'status-pending'
-                ]"
+            <router-link :to="`/products/${item.productId}`" class="sub-link">
+              상품 보기
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
-                {{ item.status === 'ACTIVE' ? '구독 중' : '대기 중' }}
-              </span>
-              <router-link :to="`/products/${item.productId}`" class="btn btn-ghost btn-sm">
-                상품 보기
-              </router-link>
-            </div>
-          </div>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </router-link>
+          </article>
         </div>
 
         <div v-else class="empty-state">
-          <p class="empty-icon">📭</p>
-          <p>구독 중인 API 상품이 없습니다.</p>
-          <router-link to="/products" class="btn btn-primary" style="margin-top:16px;">
-            API 상품 둘러보기
+          <div class="empty-state-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <p class="empty-state-title">구독 중인 API가 없습니다</p>
+          <p>카탈로그에서 필요한 API를 찾아보세요.</p>
+          <router-link to="/products" class="btn btn-primary empty-action">
+            API 둘러보기
           </router-link>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import AppHeader from '@/components/AppHeader.vue'
-import { subscriptionApi } from '@/api/subscription.js'
-import { useAuthStore } from '@/store/auth.js'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import AppSideRail from "@/components/AppSideRail.vue";
+import { subscriptionApi } from "@/api/subscription.js";
+import { useAuthStore } from "@/store/auth.js";
+import { categoryStyle, subscriptionStatus } from "@/config/catalog.js";
 
-const router = useRouter()
-const auth = useAuthStore()
+const router = useRouter();
+const auth = useAuthStore();
 
-const subscriptions = ref([])
-const loading = ref(true)
+const subscriptions = ref([]);
+const loading = ref(true);
 
-const isProvider = computed(() => auth.user?.role === 'PROVIDER')
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
-const categoryConfig = {
-  '비전': { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
-  '음성': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'vue_js' },
-  '언어': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'spring_boot' },
-  '문서': { bg: 'thumb-blue', badge: 'badge-blue', thumb: 'docker' },
-  '생성형': { bg: 'thumb-pink', badge: 'badge-pink', thumb: 'generative_ai' },
-  '예측': { bg: 'thumb-blue', badge: 'badge-blue', thumb: 'kubernetes' },
-  '이상탐지': { bg: 'thumb-amber', badge: 'badge-amber', thumb: 'docker' },
+function categoryOf(item) {
+  return item.product?.category || "기타";
 }
 
-function getThumbBg(cat) {
-  return categoryConfig[cat]?.bg || 'thumb-gray'
+function styleOf(item) {
+  return categoryStyle(categoryOf(item));
 }
 
-function getBadge(cat) {
-  return categoryConfig[cat]?.badge || 'badge-gray'
+function statusOf(item) {
+  return subscriptionStatus(item.status);
 }
 
-function getThumbSrc(product) {
-  const key = product?.thumbnail || categoryConfig[product?.category]?.thumb
-  if (!key) return ''
-  try {
-    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href
-  } catch {
-    return ''
-  }
+function formatDate(value) {
+  return value ? value.slice(0, 10) : "-";
 }
 
-function handleLogout() {
-  auth.logout()
-  router.push('/')
+function formatPrice(value) {
+  return Number(value ?? 0).toLocaleString();
 }
 
 onMounted(async () => {
-  // 제공사는 이 페이지 접근 불가 → 마이페이지로 이동
   if (isProvider.value) {
-    console.warn('[SubscriptionView] provider tried to access /subscriptions, redirect to /mypage')
-    router.replace('/mypage')
-    return
+    router.replace("/mypage");
+    return;
   }
 
   try {
-    const res = await subscriptionApi.getMySubscriptions()
-    console.log('[SubscriptionView] my subscriptions response:', res.data)
-
-    if (Array.isArray(res.data?.data)) {
-      subscriptions.value = res.data.data
-    } else if (Array.isArray(res.data)) {
-      subscriptions.value = res.data
-    } else {
-      subscriptions.value = []
-    }
-  } catch (error) {
-    console.error('[SubscriptionView] failed to load subscriptions:', error)
-    subscriptions.value = []
+    const res = await subscriptionApi.getMySubscriptions();
+    subscriptions.value = Array.isArray(res.data?.data)
+      ? res.data.data
+      : Array.isArray(res.data)
+        ? res.data
+        : [];
+  } catch (e) {
+    console.error("[Subscription] 목록 조회 실패:", e);
+    subscriptions.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-})
+});
 </script>
 
 <style scoped>
-.page-wrapper {
-  min-height: 100vh;
-  background: var(--color-bg-secondary);
-}
-
-.page-layout {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.sidebar-label {
-  font-size: 10px;
+.count-badge {
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  padding: 8px 12px 4px;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
   color: var(--color-text-secondary);
-  transition: var(--transition);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  text-decoration: none;
-}
-
-.sidebar-item:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-.sidebar-item.active {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.si-icon {
-  font-size: 15px;
-}
-
-.main-content {
-  min-width: 0;
-}
-
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 24px;
-}
-
-.enrollment-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.enrollment-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  padding: 5px 12px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  transition: var(--transition);
+  border-radius: 999px;
+  flex-shrink: 0;
 }
 
-.enrollment-card:hover {
+.sub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px 24px;
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.sub-item:hover {
+  border-color: var(--color-border-hover);
   box-shadow: var(--shadow-sm);
 }
 
-.enroll-thumb {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-md);
+.sub-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sub-top {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
+  gap: 7px;
+  margin-bottom: 8px;
 }
 
-.enroll-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 8px;
+.sub-title {
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  line-height: 1.4;
 }
 
-.thumb-teal {
-  background: #E1F5EE;
-}
-
-.thumb-blue {
-  background: #E6F1FB;
-}
-
-.thumb-purple {
-  background: #EEEDFE;
-}
-
-.thumb-pink {
-  background: #FBEAF0;
-}
-
-.thumb-gray {
-  background: #F1EFE8;
-}
-
-.enroll-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.enroll-title {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.enroll-instructor {
+.sub-provider {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
+  margin-top: 2px;
 }
 
-.enroll-status {
+.sub-meta {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
 }
 
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
+.sub-meta div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.sub-meta dt {
   font-size: 12px;
-  font-weight: 500;
-}
-
-.status-active {
-  background: #E1F5EE;
-  color: #0F6E56;
-}
-
-.status-pending {
-  background: #FAEEDA;
-  color: #854F0B;
-}
-
-.btn-sm {
-  padding: 7px 14px;
-  font-size: 13px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 80px 0;
   color: var(--color-text-muted);
 }
 
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+.sub-meta dd {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
 }
 
-.loading-center {
-  display: flex;
-  justify-content: center;
-  padding: 80px 0;
+.sub-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: var(--transition);
 }
 
-.spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.sub-link svg {
+  width: 15px;
+  height: 15px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.sub-link:hover {
+  color: var(--color-primary);
+}
+
+.empty-action {
+  margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+  .sub-item {
+    flex-wrap: wrap;
+  }
+  .sub-link {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 </style>

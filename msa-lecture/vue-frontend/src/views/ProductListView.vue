@@ -1,92 +1,58 @@
 <template>
-  <div class="page-wrapper">
-    <AppHeader />
-    <div class="page-layout">
-      <!-- 사이드바 -->
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
+  <div class="app-shell">
+    <AppSideRail />
 
-          <router-link
-            to="/products"
-            class="sidebar-item"
-            :class="{ active: $route.path === '/products' }"
-          >
-            <span class="si-icon">🧩</span> API 상품 목록
-          </router-link>
-
-          <router-link
-            v-if="!isProvider"
-            to="/subscriptions"
-            class="sidebar-item"
-          >
-            <span class="si-icon">✅</span> 내 구독 목록
-          </router-link>
-
-          <router-link
-            to="/mypage"
-            class="sidebar-item"
-          >
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">👤</span> 마이페이지
-          </router-link>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
-      <!-- 메인 -->
-      <main class="main-content">
-        <div class="content-header">
-          <div>
-            <h1 class="page-title">API 상품 목록</h1>
-            <p class="page-subtitle" v-if="isProvider">
-              제공사 계정으로 등록된 API 상품을 확인하고 새 상품을 추가할 수 있습니다.
-            </p>
-          </div>
-
-          <router-link
-            v-if="isProvider"
-            to="/products/new"
-            class="btn btn-primary create-course-btn"
-          >
-            API 상품 등록
-          </router-link>
-        </div>
-
-        <!-- 필터 -->
-        <div class="filter-bar">
-          <button
-            v-for="cat in categories"
-            :key="cat"
-            :class="['filter-chip', { active: selectedCategory === cat }]"
-            @click="selectCategory(cat)"
-          >
-            {{ cat }}
-          </button>
-        </div>
-
-        <!-- 로딩 -->
-        <div v-if="loading" class="loading-grid">
-          <div v-for="i in 6" :key="i" class="skeleton-card">
-            <div class="skeleton-thumb"></div>
-            <div class="skeleton-body">
-              <div class="skeleton-line short"></div>
-              <div class="skeleton-line"></div>
-              <div class="skeleton-line medium"></div>
+    <main class="shell-main">
+      <div class="shell-content">
+        <header class="page-header">
+          <div class="page-header-row">
+            <div>
+              <p class="page-eyebrow">Catalog</p>
+              <h1 class="page-title">필요한 AI API를 찾아보세요</h1>
+              <p class="page-subtitle">
+                {{
+                  isProvider
+                    ? "등록된 API를 관리하고 새 상품을 추가하세요."
+                    : "카테고리·요금·구독 기업 수를 비교해 맞는 API를 고르세요."
+                }}
+              </p>
             </div>
+            <router-link
+              v-if="isProvider"
+              to="/products/new"
+              class="btn btn-primary"
+            >
+              API 등록
+            </router-link>
+          </div>
+        </header>
+
+        <div class="toolbar">
+          <div class="filter-bar">
+            <button
+              v-for="cat in categories"
+              :key="cat"
+              :class="['filter-chip', { active: selectedCategory === cat }]"
+              @click="selectCategory(cat)"
+            >
+              {{ cat }}
+            </button>
+          </div>
+          <span class="result-count" v-if="!loading">
+            <span class="tabular">{{ filteredProducts.length }}</span
+            >개
+          </span>
+        </div>
+
+        <div v-if="loading" class="product-grid">
+          <div v-for="i in 6" :key="i" class="skeleton-card surface">
+            <div class="skeleton-block sk-thumb"></div>
+            <div class="skeleton-block sk-line long"></div>
+            <div class="skeleton-block sk-line medium"></div>
           </div>
         </div>
 
-        <!-- API 상품 그리드 -->
-        <div v-else-if="filteredProducts.length" class="course-grid fade-in">
+        <div v-else-if="filteredProducts.length" class="product-grid">
           <ProductCard
             v-for="product in filteredProducts"
             :key="product.id"
@@ -94,280 +60,138 @@
           />
         </div>
 
-        <!-- 빈 상태 -->
         <div v-else class="empty-state">
-          <p>해당 카테고리의 API 상품이 없습니다.</p>
-
+          <div class="empty-state-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <p class="empty-state-title">해당 카테고리의 API가 없습니다</p>
+          <p>다른 카테고리를 선택해 보세요.</p>
           <router-link
             v-if="isProvider"
             to="/products/new"
-            class="btn btn-primary empty-action-btn"
+            class="btn btn-primary empty-action"
           >
-            첫 API 상품 등록하기
+            첫 API 등록하기
           </router-link>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import AppHeader from '@/components/AppHeader.vue'
-import ProductCard from '@/components/ProductCard.vue'
-import { useProductStore } from '@/store/product.js'
-import { useAuthStore } from '@/store/auth.js'
+import { computed, onMounted } from "vue";
+import AppSideRail from "@/components/AppSideRail.vue";
+import ProductCard from "@/components/ProductCard.vue";
+import { useProductStore } from "@/store/product.js";
+import { useAuthStore } from "@/store/auth.js";
 
-const router = useRouter()
-const productStore = useProductStore()
-const auth = useAuthStore()
+const productStore = useProductStore();
+const auth = useAuthStore();
 
-const { categories, loading } = productStore
+const { categories } = productStore;
 
-const selectedCategory = computed(() => productStore.selectedCategory)
-const isProvider = computed(() => auth.user?.role === 'PROVIDER')
+const loading = computed(() => productStore.loading);
+const selectedCategory = computed(() => productStore.selectedCategory);
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
 const filteredProducts = computed(() => {
-  if (!Array.isArray(productStore.products)) return []
-  if (selectedCategory.value === '전체') return productStore.products
-  return productStore.products.filter(p => p.category === selectedCategory.value)
-})
+  if (!Array.isArray(productStore.products)) return [];
+  if (selectedCategory.value === "전체") return productStore.products;
+  return productStore.products.filter(
+    (p) => p.category === selectedCategory.value,
+  );
+});
 
 function selectCategory(cat) {
-  productStore.setCategory(cat)
-}
-
-function handleLogout() {
-  auth.logout()
-  router.push('/')
+  productStore.setCategory(cat);
 }
 
 onMounted(() => {
-  productStore.fetchProducts()
-})
+  productStore.fetchProducts();
+});
 </script>
 
 <style scoped>
-.page-wrapper {
-  min-height: 100vh;
-  background: var(--color-bg-secondary);
-}
-
-.page-layout {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
-}
-
-/* 사이드바 */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.sidebar-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  padding: 8px 12px 4px;
-}
-
-.sidebar-item {
+.toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  transition: var(--transition);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  text-decoration: none;
-}
-
-.sidebar-item:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-.sidebar-item.active {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.si-icon {
-  font-size: 15px;
-}
-
-.sidebar-btn {
-  color: var(--color-text-secondary);
-}
-
-/* 메인 */
-.main-content {
-  min-width: 0;
-}
-
-.content-header {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 22px;
 }
 
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.page-subtitle {
-  margin-top: 6px;
+.result-count {
   font-size: 13px;
+  font-weight: 600;
   color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
-.create-course-btn {
-  white-space: nowrap;
-  text-decoration: none;
-}
-
-/* 필터 */
-.filter-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-
-.filter-chip {
-  padding: 7px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1.5px solid var(--color-border);
-  background: var(--color-bg-primary);
-  color: var(--color-text-secondary);
-  transition: var(--transition);
-  cursor: pointer;
-}
-
-.filter-chip:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.filter-chip.active {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
-}
-
-/* API 상품 그리드 */
-.course-grid {
+.product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-/* 스켈레톤 */
-.loading-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 14px;
 }
 
 .skeleton-card {
-  background: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.skeleton-thumb {
-  height: 120px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.skeleton-body {
-  padding: 14px 16px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+.sk-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.sk-line {
+  height: 13px;
+}
+.sk-line.medium {
+  width: 55%;
+}
+.sk-line.long {
+  width: 85%;
 }
 
-.skeleton-line.short {
-  width: 40%;
-}
-
-.skeleton-line.medium {
-  width: 70%;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
-
-/* 빈 상태 */
-.empty-state {
-  text-align: center;
-  padding: 80px 0;
-  color: var(--color-text-muted);
-  font-size: 15px;
-}
-
-.empty-action-btn {
-  display: inline-flex;
-  margin-top: 16px;
-  text-decoration: none;
+.empty-action {
+  margin-top: 20px;
 }
 
 @media (max-width: 992px) {
-  .page-layout {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .product-grid {
     grid-template-columns: 1fr;
   }
-
-  .course-grid,
-  .loading-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .content-header {
+  .page-header-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 </style>

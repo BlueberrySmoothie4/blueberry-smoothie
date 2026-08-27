@@ -1,420 +1,317 @@
 <template>
-  <div class="page-wrapper">
-    <AppHeader />
-    <div class="page-layout">
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
+  <div class="app-shell">
+    <AppSideRail />
 
-          <router-link to="/products" class="sidebar-item">
-            <span class="si-icon">🧩</span> API 상품 목록
-          </router-link>
-
-          <router-link
-            v-if="!isProvider"
-            to="/subscriptions"
-            class="sidebar-item"
-          >
-            <span class="si-icon">✅</span> 내 구독 목록
-          </router-link>
-
-          <router-link to="/mypage" class="sidebar-item active">
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
-      <main class="main-content">
-        <!-- 프로필 카드 -->
-        <div class="profile-card fade-in-up">
-          <div class="profile-avatar">{{ auth.user?.name?.charAt(0) || '?' }}</div>
-          <div class="profile-info">
-            <h2 class="profile-name">{{ auth.user?.name || '사용자' }}</h2>
-            <p class="profile-email">{{ auth.user?.email || '-' }}</p>
-            <span class="badge" :class="isProvider ? 'badge-amber' : 'badge-blue'">
-              {{ isProvider ? 'API 제공사' : '구매 기업' }}
+    <main class="shell-main">
+      <div class="shell-content">
+        <!-- 프로필 -->
+        <header class="page-header profile-header">
+          <div class="profile">
+            <span class="profile-avatar">
+              {{ auth.user?.name?.charAt(0) || "?" }}
             </span>
+            <div class="profile-info">
+              <h1 class="profile-name">{{ auth.user?.name || "사용자" }}</h1>
+              <p class="profile-email">{{ auth.user?.email || "-" }}</p>
+            </div>
           </div>
-        </div>
+          <span class="role-badge" :class="isProvider ? 'provider' : 'buyer'">
+            {{ isProvider ? "API 제공사" : "구매 기업 담당자" }}
+          </span>
+        </header>
 
-        <!-- 구매 기업 화면 -->
-        <section v-if="!isProvider" class="recommend-section">
-          <h3 class="section-title">추천 API 상품</h3>
+        <!-- 구매 기업: 추천 -->
+        <section v-if="!isProvider">
+          <p class="section-label">Recommended</p>
+          <h2 class="section-heading">함께 쓰면 좋은 API</h2>
 
-          <p v-if="recommendMessage" class="recommend-message">
+          <p v-if="recommendMessage" class="recommend-msg">
             {{ recommendMessage }}
           </p>
 
-          <div v-if="recommendLoading" class="loading-row">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
-              <div class="skeleton-thumb"></div>
-              <div class="skeleton-body">
-                <div class="skeleton-line short"></div>
-                <div class="skeleton-line"></div>
-              </div>
+          <div v-if="recommendLoading" class="card-grid">
+            <div v-for="i in 3" :key="i" class="skeleton-card surface">
+              <div class="skeleton-block sk-thumb"></div>
+              <div class="skeleton-block sk-line long"></div>
+              <div class="skeleton-block sk-line medium"></div>
             </div>
           </div>
 
-          <div v-else-if="recommendations.length" class="recommend-grid fade-in">
-            <ProductCard v-for="p in recommendations" :key="p.id" :product="p" />
+          <div v-else-if="recommendations.length" class="card-grid">
+            <ProductCard
+              v-for="p in recommendations"
+              :key="p.id"
+              :product="p"
+            />
           </div>
 
-          <p v-else-if="recommendError" class="empty-text">
-            {{ recommendError }}
-          </p>
-
-          <p v-else class="empty-text">
-            아직 추천할 API 상품이 없습니다.
-          </p>
+          <div v-else class="empty-state">
+            <div class="empty-state-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+            </div>
+            <p class="empty-state-title">
+              {{
+                recommendError
+                  ? "추천을 불러오지 못했습니다"
+                  : "아직 추천할 API가 없습니다"
+              }}
+            </p>
+            <p>
+              {{
+                recommendError ||
+                "API를 구독하면 사용 패턴에 맞는 추천이 표시됩니다."
+              }}
+            </p>
+          </div>
         </section>
 
-        <!-- API 제공사 화면 -->
-        <section v-else class="instructor-section">
-          <div class="section-head">
-            <h3 class="section-title">내가 등록한 API 상품</h3>
-            <span class="section-subtitle">등록한 상품과 상품별 구독 기업 수를 확인할 수 있습니다.</span>
-          </div>
+        <!-- 제공사: 대시보드 -->
+        <section v-else>
+          <p class="section-label">Dashboard</p>
+          <h2 class="section-heading">내가 등록한 API</h2>
 
-          <div class="summary-cards">
-            <div class="summary-card">
-              <div class="summary-label">등록 상품 수</div>
-              <div class="summary-value">{{ myProducts.length }}</div>
+          <div class="kpi-row">
+            <div class="kpi surface">
+              <span class="kpi-label">등록 API 수</span>
+              <span class="kpi-value tabular">{{ myProducts.length }}</span>
             </div>
-            <div class="summary-card">
-              <div class="summary-label">총 구독 기업 수</div>
-              <div class="summary-value">{{ totalSubscriberCount }}</div>
-            </div>
-          </div>
-
-          <div v-if="providerLoading" class="loading-row instructor-loading">
-            <div v-for="i in 3" :key="i" class="skeleton-card">
-              <div class="skeleton-thumb"></div>
-              <div class="skeleton-body">
-                <div class="skeleton-line short"></div>
-                <div class="skeleton-line"></div>
-              </div>
+            <div class="kpi surface kpi-accent">
+              <span class="kpi-label">총 구독 기업 수</span>
+              <span class="kpi-value tabular">
+                {{ totalSubscriberCount.toLocaleString() }}
+              </span>
             </div>
           </div>
 
-          <div v-else-if="myProducts.length" class="instructor-course-list fade-in">
+          <div v-if="providerLoading" class="api-list">
             <div
+              v-for="i in 2"
+              :key="i"
+              class="skeleton-card surface"
+              style="padding: 24px"
+            >
+              <div class="skeleton-block sk-line long"></div>
+              <div class="skeleton-block sk-line medium"></div>
+            </div>
+          </div>
+
+          <div v-else-if="myProducts.length" class="api-list">
+            <article
               v-for="product in myProducts"
               :key="product.id"
-              class="instructor-course-card"
+              class="api-item surface"
             >
-              <div class="course-card-top">
+              <div class="api-item-head">
                 <div>
-                  <h4 class="course-title">{{ product.title }}</h4>
-                  <p class="course-desc">{{ product.description || '설명이 없습니다.' }}</p>
+                  <h3 class="api-item-title">{{ product.title }}</h3>
+                  <p class="api-item-desc">
+                    {{ product.description || "설명이 없습니다." }}
+                  </p>
                 </div>
-                <span
-                  class="status-badge"
-                  :class="product.status === 'PUBLISHED' ? 'status-active' : 'status-inactive'"
-                >
-                  {{ product.status || 'UNKNOWN' }}
+                <span class="status-pill" :class="statusOf(product).pill">
+                  <span class="status-dot"></span>
+                  {{ statusOf(product).label }}
                 </span>
               </div>
 
-              <div class="course-meta-grid">
-                <div class="meta-box">
-                  <div class="meta-label">카테고리</div>
-                  <div class="meta-value">{{ product.category || '-' }}</div>
+              <dl class="spec-sheet">
+                <div class="spec-row">
+                  <dt>카테고리</dt>
+                  <dd>{{ product.category || "-" }}</dd>
                 </div>
-                <div class="meta-box">
-                  <div class="meta-label">월 구독료</div>
-                  <div class="meta-value">{{ formatPrice(product.price) }}</div>
+                <div class="spec-row">
+                  <dt>월 요금</dt>
+                  <dd class="tabular">{{ formatPrice(product.price) }}</dd>
                 </div>
-                <div class="meta-box">
-                  <div class="meta-label">구독 기업 수</div>
-                  <div class="meta-value">
-                    {{ product.subscriber_count ?? product.subscriberCount ?? 0 }}개
-                  </div>
+                <div class="spec-row">
+                  <dt>구독 기업</dt>
+                  <dd class="tabular">
+                    {{ product.subscriberCount ?? 0 }}개사
+                  </dd>
                 </div>
-                <div class="meta-box">
-                  <div class="meta-label">상품 ID</div>
-                  <div class="meta-value">#{{ product.id }}</div>
+                <div class="spec-row">
+                  <dt>상품 ID</dt>
+                  <dd class="mono">#{{ product.id }}</dd>
                 </div>
-              </div>
+              </dl>
 
-              <div class="course-card-actions">
-                <router-link :to="`/products/${product.id}`" class="action-btn action-primary">
-                  상품 보기
-                </router-link>
-              </div>
-            </div>
+              <router-link
+                :to="`/products/${product.id}`"
+                class="btn btn-ghost api-item-btn"
+              >
+                API 보기
+              </router-link>
+            </article>
           </div>
 
-          <p v-else-if="providerError" class="empty-text">
-            {{ providerError }}
-          </p>
-
-          <p v-else class="empty-text">
-            아직 등록한 API 상품이 없습니다.
-          </p>
+          <div v-else class="empty-state">
+            <div class="empty-state-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+            </div>
+            <p class="empty-state-title">
+              {{
+                providerError
+                  ? "API 정보를 불러오지 못했습니다"
+                  : "아직 등록한 API가 없습니다"
+              }}
+            </p>
+            <p>{{ providerError || "첫 API 상품을 등록해 보세요." }}</p>
+            <router-link
+              v-if="!providerError"
+              to="/products/new"
+              class="btn btn-primary empty-action"
+            >
+              API 등록하기
+            </router-link>
+          </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import AppHeader from '@/components/AppHeader.vue'
-import ProductCard from '@/components/ProductCard.vue'
-import { useAuthStore } from '@/store/auth.js'
-import { useProductStore } from '@/store/product.js'
-import { subscriptionApi } from '@/api/subscription.js'
-import { productApi } from '@/api/product.js'
+import { ref, computed, onMounted } from "vue";
+import AppSideRail from "@/components/AppSideRail.vue";
+import ProductCard from "@/components/ProductCard.vue";
+import { useAuthStore } from "@/store/auth.js";
+import { useProductStore } from "@/store/product.js";
+import { subscriptionApi } from "@/api/subscription.js";
+import { productApi } from "@/api/product.js";
+import { productStatus } from "@/config/catalog.js";
 
-const router = useRouter()
-const auth = useAuthStore()
-const productStore = useProductStore()
+const auth = useAuthStore();
+const productStore = useProductStore();
 
-const isProvider = computed(() => auth.user?.role === 'PROVIDER')
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
-/* 구매 기업용 */
-const recommendations = ref([])
-const recommendLoading = ref(true)
-const recommendError = ref('')
-const recommendMessage = ref('')
+const recommendations = ref([]);
+const recommendLoading = ref(true);
+const recommendError = ref("");
+const recommendMessage = ref("");
 
-/* API 제공사용 */
-const myProducts = ref([])
-const providerLoading = ref(true)
-const providerError = ref('')
+const myProducts = ref([]);
+const providerLoading = ref(true);
+const providerError = ref("");
 
 const totalSubscriberCount = computed(() =>
   myProducts.value.reduce((sum, product) => {
-    const count = Number(product.subscriber_count ?? product.subscriberCount ?? 0)
-    return sum + (Number.isNaN(count) ? 0 : count)
-  }, 0)
-)
-
-function handleLogout() {
-  auth.logout()
-  router.push('/')
-}
+    const count = Number(product.subscriberCount ?? 0);
+    return sum + (Number.isNaN(count) ? 0 : count);
+  }, 0),
+);
 
 function formatPrice(price) {
-  const value = Number(price ?? 0)
-  if (Number.isNaN(value)) return '-'
-  return `${value.toLocaleString()}원/월`
+  const value = Number(price ?? 0);
+  if (Number.isNaN(value)) return "-";
+  return `₩${value.toLocaleString()}`;
 }
 
-/**
- * product 객체에서 제공사 식별자 추출
- */
-function getProductProviderId(product) {
-  return (
-    product.providerId ??
-    product.provider_id ??
-    product.provider ??
-    product.vendorId ??
-    product.vendor_id ??
-    null
-  )
+function statusOf(product) {
+  return productStatus(product.status);
 }
 
-async function loadBuyerRecommendations() {
+async function loadRecommendations() {
   try {
-    if (!auth.user) {
-      console.warn('[MyPage] auth.user is missing')
-      recommendError.value = '추천 API 상품을 준비 중입니다.'
-      return
+    if (!auth.user?.id) {
+      recommendError.value = "추천 API를 준비 중입니다.";
+      return;
     }
 
-    if (!auth.user.id) {
-      console.warn('[MyPage] auth.user.id is missing:', auth.user)
-      recommendError.value = '추천 API 상품을 준비 중입니다.'
-      return
-    }
+    // recommend-service는 공통 봉투 없이 바로 결과를 내려준다.
+    const { data } = await subscriptionApi.getRecommendations(auth.user.id);
 
-    const res = await subscriptionApi.getRecommendations(auth.user.id)
-    console.log('[MyPage] recommendation response:', res.data)
-
-    const payload = res.data
-
-    // 추천 응답은 백엔드 enum(VISION 등)을 그대로 담고 있으므로
-    // 목록 화면과 동일하게 카테고리 라벨을 씌워준다.
-    if (Array.isArray(payload?.recommendedProducts)) {
-      recommendations.value = payload.recommendedProducts.map(productStore.normalizeProduct)
-      recommendMessage.value = payload.message ?? ''
-    } else if (Array.isArray(payload?.data)) {
-      recommendations.value = payload.data.map(productStore.normalizeProduct)
-      recommendMessage.value = payload.message ?? ''
-    } else if (Array.isArray(payload)) {
-      recommendations.value = payload.map(productStore.normalizeProduct)
-      recommendMessage.value = ''
-    } else {
-      console.warn('[MyPage] unexpected recommendation response shape:', payload)
-      recommendations.value = []
-      recommendMessage.value = ''
-    }
-  } catch (error) {
-    console.error('[MyPage] failed to load recommendations:', error)
-    recommendError.value = '현재 추천 API 상품을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    recommendations.value = Array.isArray(data?.recommendedProducts)
+      ? data.recommendedProducts.map(productStore.normalizeProduct)
+      : [];
+    recommendMessage.value = data?.message ?? "";
+  } catch {
+    recommendError.value = "잠시 후 다시 시도해 주세요.";
   } finally {
-    recommendLoading.value = false
+    recommendLoading.value = false;
   }
 }
 
-async function loadProviderProducts() {
+async function loadMyProducts() {
   try {
-    if (!auth.user) {
-      console.warn('[MyPage] provider auth.user is missing')
-      providerError.value = 'API 상품 정보를 불러오지 못했습니다.'
-      return
+    if (!auth.user?.id) {
+      providerError.value = "계정 정보를 확인할 수 없습니다.";
+      return;
     }
 
-    if (!auth.user.id) {
-      console.warn('[MyPage] provider auth.user.id is missing:', auth.user)
-      providerError.value = 'API 상품 정보를 불러오지 못했습니다.'
-      return
-    }
+    // 제공사별 조회 엔드포인트가 없어 전체 목록에서 걸러낸다.
+    const res = await productApi.getAll();
+    const products = Array.isArray(res.data?.data)
+      ? res.data.data
+      : Array.isArray(res.data)
+        ? res.data
+        : [];
 
-    const res = await productApi.getProducts()
-    console.log('[MyPage] product list response:', res.data)
-
-    let products = []
-
-    if (Array.isArray(res.data?.data)) {
-      products = res.data.data
-    } else if (Array.isArray(res.data)) {
-      products = res.data
-    } else {
-      console.warn('[MyPage] unexpected product response shape:', res.data)
-    }
-
-    const providerId = Number(auth.user.id)
-
-    myProducts.value = products.filter(product => {
-      const productProviderId = Number(getProductProviderId(product))
-      return !Number.isNaN(productProviderId) && productProviderId === providerId
-    })
-
-    console.log('[MyPage] filtered myProducts =', myProducts.value)
-  } catch (error) {
-    console.error('[MyPage] failed to load provider products:', error)
-    providerError.value = '현재 API 상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    const providerId = Number(auth.user.id);
+    myProducts.value = products
+      .filter((product) => Number(product.providerId) === providerId)
+      .map(productStore.normalizeProduct);
+  } catch {
+    providerError.value = "잠시 후 다시 시도해 주세요.";
   } finally {
-    providerLoading.value = false
+    providerLoading.value = false;
   }
 }
 
 onMounted(async () => {
   if (isProvider.value) {
-    recommendLoading.value = false
-    await loadProviderProducts()
+    recommendLoading.value = false;
+    await loadMyProducts();
   } else {
-    providerLoading.value = false
-    await loadBuyerRecommendations()
+    providerLoading.value = false;
+    await loadRecommendations();
   }
-})
+});
 </script>
 
 <style scoped>
-.page-wrapper {
-  min-height: 100vh;
-  background: var(--color-bg-secondary);
-}
-
-.page-layout {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.sidebar-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  padding: 8px 12px 4px;
-}
-
-.sidebar-item {
+.profile-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  transition: var(--transition);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  text-decoration: none;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.sidebar-item:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-.sidebar-item.active {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.si-icon {
-  font-size: 15px;
-}
-
-.main-content {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.profile-card {
+.profile {
   display: flex;
   align-items: center;
-  gap: 20px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  box-shadow: var(--shadow-sm);
+  gap: 16px;
 }
 
 .profile-avatar {
-  width: 64px;
-  height: 64px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  font-size: 24px;
+  background: var(--color-text-primary);
+  color: #fff;
+  font-size: 20px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -422,285 +319,200 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .profile-name {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
 }
 
 .profile-email {
   font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.badge-blue {
-  background: #e8f1ff;
-  color: #2563eb;
-}
-
-.badge-amber {
-  background: #f7edd8;
-  color: #9a6700;
-}
-
-.section-head {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.section-subtitle {
-  font-size: 13px;
   color: var(--color-text-muted);
+  margin-top: 2px;
 }
 
-.recommend-message {
-  margin-bottom: 14px;
-  font-size: 13px;
+.role-badge {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.role-badge.buyer {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.role-badge.provider {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.recommend-msg {
+  font-size: 14px;
   color: var(--color-text-secondary);
+  margin: -12px 0 20px;
 }
 
-.recommend-grid {
+.card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.loading-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.instructor-loading {
-  margin-bottom: 20px;
+  gap: 14px;
 }
 
 .skeleton-card {
-  background: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.skeleton-thumb {
-  height: 110px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.skeleton-body {
-  padding: 14px 16px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.skeleton-line.short {
-  width: 40%;
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(160px, 220px));
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.summary-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-sm);
-}
-
-.summary-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
+.sk-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   margin-bottom: 8px;
 }
+.sk-line {
+  height: 13px;
+}
+.sk-line.medium {
+  width: 55%;
+}
+.sk-line.long {
+  width: 85%;
+}
 
-.summary-value {
-  font-size: 28px;
-  font-weight: 700;
+/* KPI */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.kpi {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   color: var(--color-text-primary);
 }
 
-.instructor-course-list {
+.kpi-accent {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.kpi-accent .kpi-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.kpi-accent .kpi-value {
+  color: #fff;
+}
+
+/* 등록 API 목록 */
+.api-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.api-item {
+  padding: 24px;
   display: grid;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head"
+    "spec action";
+  gap: 18px 20px;
+  align-items: end;
 }
 
-.instructor-course-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
-}
-
-.course-card-top {
+.api-item-head {
+  grid-area: head;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
 }
 
-.course-title {
-  font-size: 18px;
+.api-item-title {
+  font-size: 17px;
   font-weight: 700;
-  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: 5px;
 }
 
-.course-desc {
+.api-item-desc {
   font-size: 14px;
   color: var(--color-text-secondary);
-  line-height: 1.5;
-  white-space: pre-line;
+  line-height: 1.55;
 }
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 600;
+.api-item .spec-sheet {
+  grid-area: spec;
+  max-width: 420px;
 }
 
-.status-active {
-  background: #eaf8ef;
-  color: #0f8a3b;
+.api-item-btn {
+  grid-area: action;
 }
 
-.status-inactive {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.course-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.meta-box {
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 14px;
-}
-
-.meta-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  margin-bottom: 6px;
-}
-
-.meta-value {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.course-card-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: var(--transition);
-}
-
-.action-primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.action-primary:hover {
-  opacity: 0.92;
-}
-
-.empty-text {
-  color: var(--color-text-muted);
-  font-size: 14px;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
+.empty-action {
+  margin-top: 20px;
 }
 
 @media (max-width: 992px) {
-  .page-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .recommend-grid,
-  .loading-row,
-  .course-meta-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-cards {
-    grid-template-columns: 1fr 1fr;
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .profile-card {
+  .profile-header {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .course-card-top {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .api-item {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "head"
+      "spec"
+      "action";
+  }
+  .api-item-head {
     flex-direction: column;
   }
-
-  .summary-cards {
-    grid-template-columns: 1fr;
+  .api-item .spec-sheet {
+    max-width: none;
+  }
+  .api-item-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
