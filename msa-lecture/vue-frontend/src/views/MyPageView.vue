@@ -20,59 +20,35 @@
           </span>
         </header>
 
-        <!-- 구매 기업: 추천 -->
+        <!-- 구매 기업: 구독 요약 (추천은 카탈로그 상단으로 옮겼다) -->
         <section v-if="!isProvider">
-          <p class="section-label">Recommended</p>
-          <h2 class="section-heading">함께 쓰면 좋은 API</h2>
+          <p class="section-label">Overview</p>
+          <h2 class="section-heading">내 구독 현황</h2>
 
-          <p v-if="recommendMessage" class="recommend-msg">
-            {{ recommendMessage }}
-          </p>
-
-          <div v-if="recommendLoading" class="card-grid">
-            <div v-for="i in 3" :key="i" class="skeleton-card surface">
-              <div class="skeleton-block sk-thumb"></div>
-              <div class="skeleton-block sk-line long"></div>
-              <div class="skeleton-block sk-line medium"></div>
+          <div class="kpi-row">
+            <div class="kpi surface">
+              <span class="kpi-label">구독 중</span>
+              <span class="kpi-value tabular">{{ activeCount }}</span>
+            </div>
+            <div class="kpi surface">
+              <span class="kpi-label">결제 처리 중</span>
+              <span class="kpi-value tabular">{{ pendingCount }}</span>
+            </div>
+            <div class="kpi surface kpi-accent">
+              <span class="kpi-label">월 예상 요금</span>
+              <span class="kpi-value tabular">
+                ₩{{ monthlyTotal.toLocaleString() }}
+              </span>
             </div>
           </div>
 
-          <div v-else-if="recommendations.length" class="card-grid">
-            <ProductCard
-              v-for="p in recommendations"
-              :key="p.id"
-              :product="p"
-            />
-          </div>
-
-          <div v-else class="empty-state">
-            <div class="empty-state-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                />
-              </svg>
-            </div>
-            <p class="empty-state-title">
-              {{
-                recommendError
-                  ? "추천을 불러오지 못했습니다"
-                  : "아직 추천할 API가 없습니다"
-              }}
-            </p>
-            <p>
-              {{
-                recommendError ||
-                "API를 구독하면 사용 패턴에 맞는 추천이 표시됩니다."
-              }}
-            </p>
+          <div class="quick-links">
+            <router-link to="/subscriptions" class="btn btn-ghost">
+              내 구독 보기
+            </router-link>
+            <router-link to="/products" class="btn btn-primary">
+              카탈로그에서 추천 받기
+            </router-link>
           </div>
         </section>
 
@@ -195,7 +171,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import AppSideRail from "@/components/AppSideRail.vue";
-import ProductCard from "@/components/ProductCard.vue";
 import { useAuthStore } from "@/store/auth.js";
 import { useProductStore } from "@/store/product.js";
 import { subscriptionApi } from "@/api/subscription.js";
@@ -207,14 +182,26 @@ const productStore = useProductStore();
 
 const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
-const recommendations = ref([]);
-const recommendLoading = ref(true);
-const recommendError = ref("");
-const recommendMessage = ref("");
+const subscriptions = ref([]);
 
 const myProducts = ref([]);
 const providerLoading = ref(true);
 const providerError = ref("");
+
+const activeCount = computed(
+  () => subscriptions.value.filter((s) => s.status === "ACTIVE").length,
+);
+
+const pendingCount = computed(
+  () => subscriptions.value.filter((s) => s.status === "PENDING").length,
+);
+
+/** 활성 구독만 합산한다. 결제 대기 중인 건은 아직 청구되지 않는다. */
+const monthlyTotal = computed(() =>
+  subscriptions.value
+    .filter((s) => s.status === "ACTIVE")
+    .reduce((sum, s) => sum + Number(s.product?.price ?? 0), 0),
+);
 
 const totalSubscriberCount = computed(() =>
   myProducts.value.reduce((sum, product) => {
@@ -233,24 +220,17 @@ function statusOf(product) {
   return productStatus(product.status);
 }
 
-async function loadRecommendations() {
+async function loadSubscriptions() {
   try {
-    if (!auth.user?.id) {
-      recommendError.value = "추천 API를 준비 중입니다.";
-      return;
-    }
-
-    // recommend-service는 공통 봉투 없이 바로 결과를 내려준다.
-    const { data } = await subscriptionApi.getRecommendations(auth.user.id);
-
-    recommendations.value = Array.isArray(data?.recommendedProducts)
-      ? data.recommendedProducts.map(productStore.normalizeProduct)
-      : [];
-    recommendMessage.value = data?.message ?? "";
-  } catch {
-    recommendError.value = "잠시 후 다시 시도해 주세요.";
-  } finally {
-    recommendLoading.value = false;
+    const res = await subscriptionApi.getMySubscriptions();
+    subscriptions.value = Array.isArray(res.data?.data)
+      ? res.data.data
+      : Array.isArray(res.data)
+        ? res.data
+        : [];
+  } catch (e) {
+    console.warn("[MyPage] 구독 현황 조회 실패:", e);
+    subscriptions.value = [];
   }
 }
 
@@ -282,11 +262,10 @@ async function loadMyProducts() {
 
 onMounted(async () => {
   if (isProvider.value) {
-    recommendLoading.value = false;
     await loadMyProducts();
   } else {
     providerLoading.value = false;
-    await loadRecommendations();
+    await loadSubscriptions();
   }
 });
 </script>
@@ -351,16 +330,10 @@ onMounted(async () => {
   color: var(--color-accent);
 }
 
-.recommend-msg {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin: -12px 0 20px;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+.quick-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .skeleton-card {
@@ -387,9 +360,10 @@ onMounted(async () => {
 }
 
 /* KPI */
+/* 구매 기업은 3칸, 제공사는 2칸이라 개수에 맞춰 늘어나게 둔다 */
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -481,8 +455,9 @@ onMounted(async () => {
 }
 
 @media (max-width: 992px) {
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .quick-links .btn {
+    flex: 1;
+    justify-content: center;
   }
 }
 
@@ -490,9 +465,6 @@ onMounted(async () => {
   .profile-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .card-grid {
-    grid-template-columns: 1fr;
   }
   .kpi-row {
     grid-template-columns: 1fr;

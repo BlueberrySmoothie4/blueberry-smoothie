@@ -162,11 +162,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppSideRail from "@/components/AppSideRail.vue";
 import { useProductStore } from "@/store/product.js";
-import { subscriptionApi } from "@/api/subscription.js";
+import { useSubscriptionStore } from "@/store/subscription.js";
 import { useAuthStore } from "@/store/auth.js";
 import { categoryStyle, productStatus } from "@/config/catalog.js";
 
@@ -174,12 +174,13 @@ const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
 const auth = useAuthStore();
+const subStore = useSubscriptionStore();
 
 const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const subscribing = ref(false);
 const subscribeError = ref("");
-const subscriptionState = ref("NONE");
+const subscriptionState = computed(() => subStore.statusOf(product.value?.id));
 
 const features = [
   "신청과 동시에 결제 요청 처리",
@@ -213,6 +214,7 @@ const createdAt = computed(() => product.value?.createdAt?.slice(0, 10) || "");
 const buttonLabel = computed(() => {
   if (isOwnProduct.value) return "내가 등록한 API";
   if (isProvider.value) return "제공사 계정은 구독 불가";
+  if (subscriptionState.value === "UNKNOWN") return "구독 상태 확인 중";
   if (subscriptionState.value === "ACTIVE") return "내 구독 목록으로 이동";
   if (subscriptionState.value === "PENDING") return "신청 완료 · 결제 처리 중";
   return "결제하고 구독하기";
@@ -222,40 +224,20 @@ const buttonDisabled = computed(
   () =>
     subscribing.value ||
     isProvider.value ||
+    subscriptionState.value === "UNKNOWN" ||
     subscriptionState.value === "PENDING",
 );
 
 const helperText = computed(() => {
   if (isOwnProduct.value) return "내가 등록한 API 상품입니다.";
   if (isProvider.value) return "제공사 계정으로는 구독을 신청할 수 없습니다.";
+  if (subscriptionState.value === "UNKNOWN")
+    return "구독 상태를 확인하지 못했습니다. 새로고침해 주세요.";
   if (subscriptionState.value === "ACTIVE") return "이미 구독 중인 API입니다.";
   if (subscriptionState.value === "PENDING")
     return "결제가 승인되면 구독이 활성화됩니다.";
   return "신청하면 보유 크레딧에서 결제가 함께 처리됩니다.";
 });
-
-async function loadSubscriptionState() {
-  if (!auth.user?.id || !product.value?.id || isProvider.value) {
-    subscriptionState.value = "NONE";
-    return;
-  }
-
-  try {
-    const res = await subscriptionApi.getMySubscriptions();
-    const list = Array.isArray(res.data?.data)
-      ? res.data.data
-      : Array.isArray(res.data)
-        ? res.data
-        : [];
-
-    const matched = list.find(
-      (item) => Number(item.productId) === Number(product.value.id),
-    );
-    subscriptionState.value = matched ? matched.status : "NONE";
-  } catch {
-    subscriptionState.value = "NONE";
-  }
-}
 
 async function handlePrimaryAction() {
   subscribeError.value = "";
@@ -269,12 +251,12 @@ async function handlePrimaryAction() {
     router.push("/subscriptions");
     return;
   }
+  if (subscriptionState.value === "UNKNOWN") return;
   if (subscriptionState.value === "PENDING") return;
 
   subscribing.value = true;
   try {
-    const res = await subscriptionApi.subscribe(product.value.id);
-    subscriptionState.value = res.data?.data?.status ?? "PENDING";
+    await subStore.subscribe(product.value.id);
   } catch (e) {
     subscribeError.value =
       e.response?.data?.message || "구독 신청에 실패했습니다.";
@@ -283,19 +265,10 @@ async function handlePrimaryAction() {
   }
 }
 
-async function loadProduct(id) {
-  await productStore.fetchProduct(id);
-  await loadSubscriptionState();
-}
-
-onMounted(() => loadProduct(route.params.id));
-
-watch(
-  () => route.params.id,
-  (id) => {
-    if (id) loadProduct(id);
-  },
-);
+onMounted(async () => {
+  await productStore.fetchProduct(route.params.id);
+  if (!isProvider.value) await subStore.fetchMySubscriptions();
+});
 </script>
 
 <style scoped>

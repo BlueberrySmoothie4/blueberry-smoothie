@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('user')
 
     if (redirect) {
-      window.location.href = '/login'
+      window.location.href = '/logout'
     }
   }
 
