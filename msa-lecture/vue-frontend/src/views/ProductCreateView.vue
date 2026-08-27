@@ -4,7 +4,7 @@
 
     <main class="shell-main">
       <div class="shell-content">
-        <router-link to="/courses" class="back-link">
+        <router-link to="/products" class="back-link">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -28,7 +28,7 @@
 
         <div class="create-layout">
           <div class="form-card surface">
-            <form class="course-form" @submit.prevent="handleSubmit">
+            <form class="product-form" @submit.prevent="handleSubmit">
               <div class="form-group">
                 <label class="form-label" for="title">API 상품명</label>
                 <input
@@ -98,7 +98,7 @@
               </div>
 
               <div class="form-actions">
-                <router-link to="/courses" class="btn btn-ghost">
+                <router-link to="/products" class="btn btn-ghost">
                   취소
                 </router-link>
 
@@ -143,8 +143,9 @@
 import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import AppSideRail from "@/components/AppSideRail.vue";
-import { courseApi } from "@/api/course.js";
+import { productApi } from "@/api/product.js";
 import { useAuthStore } from "@/store/auth.js";
+import { CATEGORIES, categoryStyle } from "@/config/catalog.js";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -161,26 +162,17 @@ const validationError = ref("");
 const submitError = ref("");
 const submitSuccess = ref("");
 
-const categoryOptions = [
-  { label: "텍스트/NLP", value: "BACKEND", badge: "badge-teal" },
-  { label: "비전", value: "FRONTEND", badge: "badge-teal" },
-  { label: "인프라", value: "DEVOPS", badge: "badge-blue" },
-  { label: "데이터 / 생성형AI", value: "DATA_SCIENCE", badge: "badge-purple" },
-];
+const categoryOptions = CATEGORIES;
 
-const previewCategoryLabel = computed(() => {
-  return (
+const previewCategoryLabel = computed(
+  () =>
     categoryOptions.find((opt) => opt.value === form.category)?.label ||
-    "카테고리 미선택"
-  );
-});
+    "카테고리 미선택",
+);
 
-const previewBadgeClass = computed(() => {
-  return (
-    categoryOptions.find((opt) => opt.value === form.category)?.badge ||
-    "badge-gray"
-  );
-});
+const previewBadgeClass = computed(
+  () => categoryStyle(form.category).badge || "badge-gray",
+);
 
 const previewPrice = computed(() => {
   const value = Number(form.price);
@@ -191,7 +183,7 @@ const previewPrice = computed(() => {
 function validateForm() {
   validationError.value = "";
 
-  if (!auth.user || auth.user.role !== "INSTRUCTOR") {
+  if (!auth.user || auth.user.role !== "PROVIDER") {
     validationError.value = "제공사 계정만 API를 등록할 수 있습니다.";
     return false;
   }
@@ -241,24 +233,17 @@ async function handleSubmit() {
       price: Number(form.price),
     };
 
-    const res = await courseApi.create(payload);
-    console.log("[CourseCreate] create response =", res.data);
+    const res = await productApi.create(payload);
 
-    submitSuccess.value = "API가 성공적으로 등록되었습니다.";
+    submitSuccess.value = "API 상품이 등록되었습니다.";
 
-    const createdCourseId = res.data?.data?.id ?? res.data?.id;
+    const createdId = res.data?.data?.id ?? res.data?.id;
 
-    if (createdCourseId) {
-      setTimeout(() => {
-        router.push(`/courses/${createdCourseId}`);
-      }, 500);
-    } else {
-      setTimeout(() => {
-        router.push("/courses");
-      }, 500);
-    }
+    setTimeout(() => {
+      router.push(createdId ? `/products/${createdId}` : "/products");
+    }, 500);
   } catch (error) {
-    console.error("[CourseCreate] create failed:", error);
+    console.error("[ProductCreate] create failed:", error);
     submitError.value =
       error.response?.data?.message || "API 등록에 실패했습니다.";
   } finally {
@@ -299,7 +284,7 @@ async function handleSubmit() {
   padding: 28px;
 }
 
-.course-form {
+.product-form {
   display: flex;
   flex-direction: column;
   gap: 18px;

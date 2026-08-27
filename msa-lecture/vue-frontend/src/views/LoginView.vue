@@ -72,8 +72,8 @@
               <div class="form-group">
                 <label class="form-label">역할</label>
                 <select v-model="registerForm.role" class="form-input">
-                  <option value="STUDENT">구매 기업 담당자</option>
-                  <option value="INSTRUCTOR">API 제공사</option>
+                  <option value="BUYER">구매 기업 담당자</option>
+                  <option value="PROVIDER">API 제공사</option>
                 </select>
               </div>
               <div v-if="error" class="error-msg">{{ error }}</div>
@@ -117,12 +117,12 @@ const registerForm = ref({
   name: "",
   email: "",
   password: "",
-  role: "STUDENT",
+  role: "BUYER",
 });
 
 const features = [
-  "구독 중인 API Key 확인",
-  "맞춤 API 추천",
+  "구독 중인 API 상태 확인",
+  "구독 이력 기반 API 추천",
   "결제·크레딧 내역 관리",
 ];
 
@@ -137,7 +137,7 @@ async function handleRegister() {
   try {
     await authApi.register(registerForm.value);
     success.value = "회원가입 완료! 로그인 페이지로 이동합니다.";
-    registerForm.value = { name: "", email: "", password: "", role: "STUDENT" };
+    registerForm.value = { name: "", email: "", password: "", role: "BUYER" };
     setTimeout(() => {
       showRegister.value = false;
       success.value = "";

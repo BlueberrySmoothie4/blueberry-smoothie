@@ -15,13 +15,13 @@
               <p class="profile-email">{{ auth.user?.email || "-" }}</p>
             </div>
           </div>
-          <span class="role-badge" :class="isInstructor ? 'provider' : 'buyer'">
-            {{ isInstructor ? "API 제공사" : "구매 기업 담당자" }}
+          <span class="role-badge" :class="isProvider ? 'provider' : 'buyer'">
+            {{ isProvider ? "API 제공사" : "구매 기업 담당자" }}
           </span>
         </header>
 
         <!-- 구매 기업: 추천 -->
-        <section v-if="!isInstructor">
+        <section v-if="!isProvider">
           <p class="section-label">Recommended</p>
           <h2 class="section-heading">함께 쓰면 좋은 API</h2>
 
@@ -38,7 +38,11 @@
           </div>
 
           <div v-else-if="recommendations.length" class="card-grid">
-            <CourseCard v-for="c in recommendations" :key="c.id" :course="c" />
+            <ProductCard
+              v-for="p in recommendations"
+              :key="p.id"
+              :product="p"
+            />
           </div>
 
           <div v-else class="empty-state">
@@ -80,17 +84,17 @@
           <div class="kpi-row">
             <div class="kpi surface">
               <span class="kpi-label">등록 API 수</span>
-              <span class="kpi-value tabular">{{ myCourses.length }}</span>
+              <span class="kpi-value tabular">{{ myProducts.length }}</span>
             </div>
             <div class="kpi surface kpi-accent">
               <span class="kpi-label">총 구독 기업 수</span>
               <span class="kpi-value tabular">
-                {{ totalEnrollmentCount.toLocaleString() }}
+                {{ totalSubscriberCount.toLocaleString() }}
               </span>
             </div>
           </div>
 
-          <div v-if="instructorLoading" class="api-list">
+          <div v-if="providerLoading" class="api-list">
             <div
               v-for="i in 2"
               :key="i"
@@ -102,53 +106,48 @@
             </div>
           </div>
 
-          <div v-else-if="myCourses.length" class="api-list">
+          <div v-else-if="myProducts.length" class="api-list">
             <article
-              v-for="course in myCourses"
-              :key="course.id"
+              v-for="product in myProducts"
+              :key="product.id"
               class="api-item surface"
             >
               <div class="api-item-head">
                 <div>
-                  <h3 class="api-item-title">{{ course.title }}</h3>
+                  <h3 class="api-item-title">{{ product.title }}</h3>
                   <p class="api-item-desc">
-                    {{ course.description || "설명이 없습니다." }}
+                    {{ product.description || "설명이 없습니다." }}
                   </p>
                 </div>
-                <span
-                  class="status-pill"
-                  :class="course.status === 'ACTIVE' ? 'active' : 'inactive'"
-                >
+                <span class="status-pill" :class="statusOf(product).pill">
                   <span class="status-dot"></span>
-                  {{ course.status || "UNKNOWN" }}
+                  {{ statusOf(product).label }}
                 </span>
               </div>
 
               <dl class="spec-sheet">
                 <div class="spec-row">
                   <dt>카테고리</dt>
-                  <dd>{{ course.category || "-" }}</dd>
+                  <dd>{{ product.category || "-" }}</dd>
                 </div>
                 <div class="spec-row">
                   <dt>월 요금</dt>
-                  <dd class="tabular">{{ formatPrice(course.price) }}</dd>
+                  <dd class="tabular">{{ formatPrice(product.price) }}</dd>
                 </div>
                 <div class="spec-row">
                   <dt>구독 기업</dt>
                   <dd class="tabular">
-                    {{
-                      course.enrollment_count ?? course.enrollmentCount ?? 0
-                    }}개사
+                    {{ product.subscriberCount ?? 0 }}개사
                   </dd>
                 </div>
                 <div class="spec-row">
-                  <dt>API ID</dt>
-                  <dd class="mono">#{{ course.id }}</dd>
+                  <dt>상품 ID</dt>
+                  <dd class="mono">#{{ product.id }}</dd>
                 </div>
               </dl>
 
               <router-link
-                :to="`/courses/${course.id}`"
+                :to="`/products/${product.id}`"
                 class="btn btn-ghost api-item-btn"
               >
                 API 보기
@@ -173,15 +172,15 @@
             </div>
             <p class="empty-state-title">
               {{
-                instructorError
+                providerError
                   ? "API 정보를 불러오지 못했습니다"
                   : "아직 등록한 API가 없습니다"
               }}
             </p>
-            <p>{{ instructorError || "첫 API 상품을 등록해 보세요." }}</p>
+            <p>{{ providerError || "첫 API 상품을 등록해 보세요." }}</p>
             <router-link
-              v-if="!instructorError"
-              to="/courses/new"
+              v-if="!providerError"
+              to="/products/new"
               class="btn btn-primary empty-action"
             >
               API 등록하기
@@ -196,29 +195,30 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import AppSideRail from "@/components/AppSideRail.vue";
-import CourseCard from "@/components/CourseCard.vue";
+import ProductCard from "@/components/ProductCard.vue";
 import { useAuthStore } from "@/store/auth.js";
-import { enrollmentApi } from "@/api/enrollment.js";
-import { courseApi } from "@/api/course.js";
+import { useProductStore } from "@/store/product.js";
+import { subscriptionApi } from "@/api/subscription.js";
+import { productApi } from "@/api/product.js";
+import { productStatus } from "@/config/catalog.js";
 
 const auth = useAuthStore();
+const productStore = useProductStore();
 
-const isInstructor = computed(() => auth.user?.role === "INSTRUCTOR");
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
 const recommendations = ref([]);
 const recommendLoading = ref(true);
 const recommendError = ref("");
 const recommendMessage = ref("");
 
-const myCourses = ref([]);
-const instructorLoading = ref(true);
-const instructorError = ref("");
+const myProducts = ref([]);
+const providerLoading = ref(true);
+const providerError = ref("");
 
-const totalEnrollmentCount = computed(() =>
-  myCourses.value.reduce((sum, course) => {
-    const count = Number(
-      course.enrollment_count ?? course.enrollmentCount ?? 0,
-    );
+const totalSubscriberCount = computed(() =>
+  myProducts.value.reduce((sum, product) => {
+    const count = Number(product.subscriberCount ?? 0);
     return sum + (Number.isNaN(count) ? 0 : count);
   }, 0),
 );
@@ -229,36 +229,24 @@ function formatPrice(price) {
   return `₩${value.toLocaleString()}`;
 }
 
-function getCourseInstructorId(course) {
-  return (
-    course.instructorId ??
-    course.instructor_id ??
-    course.instructor ??
-    course.teacherId ??
-    course.teacher_id ??
-    null
-  );
+function statusOf(product) {
+  return productStatus(product.status);
 }
 
-async function loadStudentRecommendations() {
+async function loadRecommendations() {
   try {
     if (!auth.user?.id) {
       recommendError.value = "추천 API를 준비 중입니다.";
       return;
     }
 
-    const res = await enrollmentApi.getRecommendations(auth.user.id);
-    const payload = res.data;
+    // recommend-service는 공통 봉투 없이 바로 결과를 내려준다.
+    const { data } = await subscriptionApi.getRecommendations(auth.user.id);
 
-    if (Array.isArray(payload?.recommendedCourses)) {
-      recommendations.value = payload.recommendedCourses;
-      recommendMessage.value = payload.message ?? "";
-    } else if (Array.isArray(payload?.data)) {
-      recommendations.value = payload.data;
-      recommendMessage.value = payload.message ?? "";
-    } else if (Array.isArray(payload)) {
-      recommendations.value = payload;
-    }
+    recommendations.value = Array.isArray(data?.recommendedProducts)
+      ? data.recommendedProducts.map(productStore.normalizeProduct)
+      : [];
+    recommendMessage.value = data?.message ?? "";
   } catch {
     recommendError.value = "잠시 후 다시 시도해 주세요.";
   } finally {
@@ -266,41 +254,39 @@ async function loadStudentRecommendations() {
   }
 }
 
-async function loadInstructorCourses() {
+async function loadMyProducts() {
   try {
     if (!auth.user?.id) {
-      instructorError.value = "계정 정보를 확인할 수 없습니다.";
+      providerError.value = "계정 정보를 확인할 수 없습니다.";
       return;
     }
 
-    const res = await courseApi.getCourses();
-    const courses = Array.isArray(res.data?.data)
+    // 제공사별 조회 엔드포인트가 없어 전체 목록에서 걸러낸다.
+    const res = await productApi.getAll();
+    const products = Array.isArray(res.data?.data)
       ? res.data.data
       : Array.isArray(res.data)
         ? res.data
         : [];
 
-    const instructorId = Number(auth.user.id);
-    myCourses.value = courses.filter((course) => {
-      const courseInstructorId = Number(getCourseInstructorId(course));
-      return (
-        !Number.isNaN(courseInstructorId) && courseInstructorId === instructorId
-      );
-    });
+    const providerId = Number(auth.user.id);
+    myProducts.value = products
+      .filter((product) => Number(product.providerId) === providerId)
+      .map(productStore.normalizeProduct);
   } catch {
-    instructorError.value = "잠시 후 다시 시도해 주세요.";
+    providerError.value = "잠시 후 다시 시도해 주세요.";
   } finally {
-    instructorLoading.value = false;
+    providerLoading.value = false;
   }
 }
 
 onMounted(async () => {
-  if (isInstructor.value) {
+  if (isProvider.value) {
     recommendLoading.value = false;
-    await loadInstructorCourses();
+    await loadMyProducts();
   } else {
-    instructorLoading.value = false;
-    await loadStudentRecommendations();
+    providerLoading.value = false;
+    await loadRecommendations();
   }
 });
 </script>

@@ -35,7 +35,7 @@
         <span class="rail-user-info">
           <span class="rail-user-name">{{ auth.user?.name || "사용자" }}</span>
           <span class="rail-user-role">
-            {{ isInstructor ? "API 제공사" : "구매 기업" }}
+            {{ isProvider ? "API 제공사" : "구매 기업" }}
           </span>
         </span>
       </router-link>
@@ -67,7 +67,7 @@ import { BRAND } from "@/config/brand.js";
 const auth = useAuthStore();
 const router = useRouter();
 
-const isInstructor = computed(() => auth.user?.role === "INSTRUCTOR");
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
 const ICONS = {
   catalog: `<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>`,
@@ -79,27 +79,27 @@ const ICONS = {
 const navItems = computed(() => {
   const items = [
     {
-      to: "/courses",
+      to: "/products",
       label: "API 카탈로그",
       icon: ICONS.catalog,
       isActive: (path) =>
-        path.startsWith("/courses") && path !== "/courses/new",
+        path.startsWith("/products") && path !== "/products/new",
     },
   ];
 
-  if (isInstructor.value) {
+  if (isProvider.value) {
     items.push({
-      to: "/courses/new",
+      to: "/products/new",
       label: "API 등록",
       icon: ICONS.create,
-      isActive: (path) => path === "/courses/new",
+      isActive: (path) => path === "/products/new",
     });
   } else {
     items.push({
-      to: "/enrollments",
+      to: "/subscriptions",
       label: "내 구독",
       icon: ICONS.subscription,
-      isActive: (path) => path === "/enrollments",
+      isActive: (path) => path === "/subscriptions",
     });
   }
 

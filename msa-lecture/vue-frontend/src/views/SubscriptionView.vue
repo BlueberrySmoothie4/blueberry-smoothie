@@ -10,11 +10,11 @@
             <div>
               <h1 class="page-title">구독 중인 API</h1>
               <p class="page-subtitle">
-                구독이 활성화되면 API Key가 발급돼 바로 호출할 수 있습니다.
+                신청한 API는 결제가 승인되면 구독 중으로 전환됩니다.
               </p>
             </div>
             <span class="count-badge" v-if="!loading">
-              <span class="tabular">{{ enrollments.length }}</span
+              <span class="tabular">{{ subscriptions.length }}</span
               >건
             </span>
           </div>
@@ -24,57 +24,54 @@
           <div class="spinner"></div>
         </div>
 
-        <div v-else-if="enrollments.length" class="sub-list">
+        <div v-else-if="subscriptions.length" class="sub-list">
           <article
-            v-for="item in enrollments"
+            v-for="item in subscriptions"
             :key="item.id"
             class="sub-item surface"
           >
-            <div class="sub-icon" :class="getIconTone(item.course?.category)">
-              {{ item.course?.category?.charAt(0) || "A" }}
-            </div>
+            <span class="cat-tile" :class="styleOf(item).tone">
+              {{ categoryOf(item).charAt(0) }}
+            </span>
 
             <div class="sub-info">
               <div class="sub-top">
-                <span class="badge badge-gray">{{
-                  item.course?.category
-                }}</span>
-                <span
-                  class="status-pill"
-                  :class="item.status === 'ACTIVE' ? 'active' : 'pending'"
-                >
+                <span class="badge" :class="styleOf(item).badge">
+                  {{ categoryOf(item) }}
+                </span>
+                <span class="status-pill" :class="statusOf(item).pill">
                   <span class="status-dot"></span>
-                  {{ item.status === "ACTIVE" ? "구독 중" : "대기 중" }}
+                  {{ statusOf(item).label }}
                 </span>
               </div>
-              <h3 class="sub-title">{{ item.course?.title }}</h3>
-              <p class="sub-provider">{{ item.course?.instructorName }}</p>
 
-              <div
-                class="key-row"
-                :class="{ issued: item.status === 'ACTIVE' }"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
-                  />
-                </svg>
-                <code v-if="item.status === 'ACTIVE'"
-                  >nx_live_••••••••{{ keySuffix(item.id) }}</code
-                >
-                <span v-else>결제 처리 후 Key가 발급됩니다</span>
-              </div>
+              <h3 class="sub-title">
+                {{ item.product?.title || `상품 #${item.productId}` }}
+              </h3>
+              <p class="sub-provider">
+                {{ item.product?.providerName || "제공사 미확인" }}
+              </p>
+
+              <dl class="sub-meta">
+                <div>
+                  <dt>구독 번호</dt>
+                  <dd class="mono">#{{ item.id }}</dd>
+                </div>
+                <div>
+                  <dt>신청일</dt>
+                  <dd class="mono">{{ formatDate(item.createdAt) }}</dd>
+                </div>
+                <div>
+                  <dt>월 요금</dt>
+                  <dd class="tabular">
+                    ₩{{ formatPrice(item.product?.price) }}
+                  </dd>
+                </div>
+              </dl>
             </div>
 
-            <router-link :to="`/courses/${item.courseId}`" class="sub-link">
-              API 보기
+            <router-link :to="`/products/${item.productId}`" class="sub-link">
+              상품 보기
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -99,15 +96,13 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M22 12h-6l-2 3h-4l-2-3H2" />
-              <path
-                d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
-              />
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M9 12l2 2 4-4" />
             </svg>
           </div>
           <p class="empty-state-title">구독 중인 API가 없습니다</p>
           <p>카탈로그에서 필요한 API를 찾아보세요.</p>
-          <router-link to="/courses" class="btn btn-primary empty-action">
+          <router-link to="/products" class="btn btn-primary empty-action">
             API 둘러보기
           </router-link>
         </div>
@@ -120,49 +115,54 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import AppSideRail from "@/components/AppSideRail.vue";
-import { enrollmentApi } from "@/api/enrollment.js";
+import { subscriptionApi } from "@/api/subscription.js";
 import { useAuthStore } from "@/store/auth.js";
+import { categoryStyle, subscriptionStatus } from "@/config/catalog.js";
 
 const router = useRouter();
 const auth = useAuthStore();
 
-const enrollments = ref([]);
+const subscriptions = ref([]);
 const loading = ref(true);
 
-const isInstructor = computed(() => auth.user?.role === "INSTRUCTOR");
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
-const iconTones = {
-  백엔드: "tone-teal",
-  프론트엔드: "tone-teal",
-  DevOps: "tone-blue",
-  데이터: "tone-purple",
-  AI: "tone-pink",
-};
-
-function getIconTone(cat) {
-  return iconTones[cat] || "tone-gray";
+function categoryOf(item) {
+  return item.product?.category || "기타";
 }
 
-/** 실제 Key가 내려오기 전까지 노출용 접미사 */
-function keySuffix(id) {
-  return String(id).padStart(3, "0").slice(-3);
+function styleOf(item) {
+  return categoryStyle(categoryOf(item));
+}
+
+function statusOf(item) {
+  return subscriptionStatus(item.status);
+}
+
+function formatDate(value) {
+  return value ? value.slice(0, 10) : "-";
+}
+
+function formatPrice(value) {
+  return Number(value ?? 0).toLocaleString();
 }
 
 onMounted(async () => {
-  if (isInstructor.value) {
+  if (isProvider.value) {
     router.replace("/mypage");
     return;
   }
 
   try {
-    const res = await enrollmentApi.getMyEnrollments();
-    if (Array.isArray(res.data?.data)) {
-      enrollments.value = res.data.data;
-    } else if (Array.isArray(res.data)) {
-      enrollments.value = res.data;
-    }
-  } catch {
-    enrollments.value = [];
+    const res = await subscriptionApi.getMySubscriptions();
+    subscriptions.value = Array.isArray(res.data?.data)
+      ? res.data.data
+      : Array.isArray(res.data)
+        ? res.data
+        : [];
+  } catch (e) {
+    console.error("[Subscription] 목록 조회 실패:", e);
+    subscriptions.value = [];
   } finally {
     loading.value = false;
   }
@@ -202,39 +202,6 @@ onMounted(async () => {
   box-shadow: var(--shadow-sm);
 }
 
-.sub-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-.tone-teal {
-  background: #e6faf5;
-  color: #0ca678;
-}
-.tone-blue {
-  background: #e8f3ff;
-  color: #1b64da;
-}
-.tone-purple {
-  background: #f3f0ff;
-  color: #7048e8;
-}
-.tone-pink {
-  background: #fff0f6;
-  color: #d6336c;
-}
-.tone-gray {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
-}
-
 .sub-info {
   flex: 1;
   min-width: 0;
@@ -261,33 +228,30 @@ onMounted(async () => {
   margin-top: 2px;
 }
 
-.key-row {
+.sub-meta {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.sub-meta div {
+  display: flex;
+  align-items: baseline;
   gap: 7px;
-  margin-top: 14px;
-  padding: 9px 12px;
-  border-radius: 9px;
-  background: var(--color-bg-secondary);
-  font-size: 12.5px;
+}
+
+.sub-meta dt {
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 
-.key-row svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
-
-.key-row code {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.02em;
-}
-
-.key-row.issued {
-  background: var(--color-success-light);
-  color: var(--color-success);
+.sub-meta dd {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
 }
 
 .sub-link {

@@ -11,15 +11,15 @@
               <h1 class="page-title">필요한 AI API를 찾아보세요</h1>
               <p class="page-subtitle">
                 {{
-                  isInstructor
+                  isProvider
                     ? "등록된 API를 관리하고 새 상품을 추가하세요."
                     : "카테고리·요금·구독 기업 수를 비교해 맞는 API를 고르세요."
                 }}
               </p>
             </div>
             <router-link
-              v-if="isInstructor"
-              to="/courses/new"
+              v-if="isProvider"
+              to="/products/new"
               class="btn btn-primary"
             >
               API 등록
@@ -39,12 +39,12 @@
             </button>
           </div>
           <span class="result-count" v-if="!loading">
-            <span class="tabular">{{ filteredCourses.length }}</span
+            <span class="tabular">{{ filteredProducts.length }}</span
             >개
           </span>
         </div>
 
-        <div v-if="loading" class="course-grid">
+        <div v-if="loading" class="product-grid">
           <div v-for="i in 6" :key="i" class="skeleton-card surface">
             <div class="skeleton-block sk-thumb"></div>
             <div class="skeleton-block sk-line long"></div>
@@ -52,11 +52,11 @@
           </div>
         </div>
 
-        <div v-else-if="filteredCourses.length" class="course-grid">
-          <CourseCard
-            v-for="course in filteredCourses"
-            :key="course.id"
-            :course="course"
+        <div v-else-if="filteredProducts.length" class="product-grid">
+          <ProductCard
+            v-for="product in filteredProducts"
+            :key="product.id"
+            :product="product"
           />
         </div>
 
@@ -80,8 +80,8 @@
           <p class="empty-state-title">해당 카테고리의 API가 없습니다</p>
           <p>다른 카테고리를 선택해 보세요.</p>
           <router-link
-            v-if="isInstructor"
-            to="/courses/new"
+            v-if="isProvider"
+            to="/products/new"
             class="btn btn-primary empty-action"
           >
             첫 API 등록하기
@@ -95,33 +95,33 @@
 <script setup>
 import { computed, onMounted } from "vue";
 import AppSideRail from "@/components/AppSideRail.vue";
-import CourseCard from "@/components/CourseCard.vue";
-import { useCourseStore } from "@/store/course.js";
+import ProductCard from "@/components/ProductCard.vue";
+import { useProductStore } from "@/store/product.js";
 import { useAuthStore } from "@/store/auth.js";
 
-const courseStore = useCourseStore();
+const productStore = useProductStore();
 const auth = useAuthStore();
 
-const { categories } = courseStore;
+const { categories } = productStore;
 
-const loading = computed(() => courseStore.loading);
-const selectedCategory = computed(() => courseStore.selectedCategory);
-const isInstructor = computed(() => auth.user?.role === "INSTRUCTOR");
+const loading = computed(() => productStore.loading);
+const selectedCategory = computed(() => productStore.selectedCategory);
+const isProvider = computed(() => auth.user?.role === "PROVIDER");
 
-const filteredCourses = computed(() => {
-  if (!Array.isArray(courseStore.courses)) return [];
-  if (selectedCategory.value === "전체") return courseStore.courses;
-  return courseStore.courses.filter(
-    (c) => c.category === selectedCategory.value,
+const filteredProducts = computed(() => {
+  if (!Array.isArray(productStore.products)) return [];
+  if (selectedCategory.value === "전체") return productStore.products;
+  return productStore.products.filter(
+    (p) => p.category === selectedCategory.value,
   );
 });
 
 function selectCategory(cat) {
-  courseStore.setCategory(cat);
+  productStore.setCategory(cat);
 }
 
 onMounted(() => {
-  courseStore.fetchCourses();
+  productStore.fetchProducts();
 });
 </script>
 
@@ -141,7 +141,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.course-grid {
+.product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
@@ -175,13 +175,13 @@ onMounted(() => {
 }
 
 @media (max-width: 992px) {
-  .course-grid {
+  .product-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .course-grid {
+  .product-grid {
     grid-template-columns: 1fr;
   }
   .page-header-row {

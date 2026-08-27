@@ -66,18 +66,21 @@
 
             <pre
               class="console-body"
-            ><span class="c-com"># 필요한 API를 구독하면 Key가 즉시 발급됩니다</span>
-<span class="c-cmd">curl</span> -X POST https://{{ BRAND.apiHost }}/v1/subscriptions \
-  -H <span class="c-str">"Authorization: Bearer sk_live_••••"</span> \
-  -d <span class="c-str">'{ "api_id": "text.summarize.v2" }'</span>
+            ><span class="c-com"># 카탈로그에서 고른 API를 구독 신청합니다</span>
+<span class="c-cmd">curl</span> -X POST https://{{ BRAND.apiHost }}/api/subscriptions \
+  -H <span class="c-str">"Authorization: Bearer $ACCESS_TOKEN"</span> \
+  -d <span class="c-str">'{ "productId": 12 }'</span>
 </pre>
 
             <div class="console-divider"></div>
 
             <pre class="console-body console-res">{
-  <span class="c-key">"status"</span>:     <span class="c-ok">"ACTIVE"</span>,
-  <span class="c-key">"api_key"</span>:    <span class="c-str">"nx_live_8f2a…c91"</span>,
-  <span class="c-key">"latency_ms"</span>: <span class="c-num">82</span>
+  <span class="c-key">"success"</span>: <span class="c-ok">true</span>,
+  <span class="c-key">"data"</span>: {
+    <span class="c-key">"id"</span>:        <span class="c-num">1</span>,
+    <span class="c-key">"productId"</span>: <span class="c-num">12</span>,
+    <span class="c-key">"status"</span>:    <span class="c-str">"PENDING"</span>
+  }
 }</pre>
           </div>
         </div>
@@ -126,9 +129,9 @@
           >
             <router-link to="/login" class="api-card">
               <div class="api-card-head">
-                <div class="api-thumb" :class="api.tone">
-                  <img :src="api.thumbSrc" :alt="api.title" />
-                </div>
+                <span class="api-thumb" :class="api.tone">
+                  {{ api.category.charAt(0) }}
+                </span>
                 <span class="api-cat">{{ api.category }}</span>
               </div>
 
@@ -164,7 +167,7 @@
               </div>
               <div class="panel-chips">
                 <span
-                  v-for="(c, i) in ['텍스트', '비전', '음성', '데이터']"
+                  v-for="(c, i) in ['문서', '비전', '음성', '언어']"
                   :key="c"
                   class="chip"
                   :class="{ on: i === 0 }"
@@ -224,21 +227,23 @@
             <!-- 03 Key 발급 -->
             <div class="panel" :class="{ on: activeStep === 2 }">
               <div class="panel-bar">
-                <span class="panel-title">API Key</span>
+                <span class="panel-title">구독 상태</span>
                 <span class="panel-meta ok"
                   ><span class="pulse"></span>ACTIVE</span
                 >
               </div>
-              <div class="keybox">
-                <span class="key-label">발급된 Key</span>
-                <code class="key-value">nx_live_8f2a··········c91</code>
+              <div class="statebox">
+                <span class="state-step done">PENDING</span>
+                <span class="state-arrow">→</span>
+                <span class="state-step now">ACTIVE</span>
               </div>
               <pre
                 class="panel-code"
-              ><span class="c-cmd">curl</span> https://{{ BRAND.apiHost }}/v1/summarize \
-  -H <span class="c-str">"X-API-Key: nx_live_8f2a…c91"</span>
+              ><span class="c-cmd">GET</span> {{ BRAND.apiHost }}/api/subscriptions/my
 
-{ <span class="c-key">"summary"</span>: <span class="c-str">"3분기 매출은 전분기 대비…"</span> }</pre>
+{ <span class="c-key">"productId"</span>: <span class="c-num">12</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"ACTIVE"</span>,
+  <span class="c-key">"product"</span>: { <span class="c-key">"title"</span>: <span class="c-str">"계약서 요약 API"</span> } }</pre>
             </div>
           </div>
         </div>
@@ -350,10 +355,6 @@ import { ref, onMounted, onUnmounted } from "vue";
 import AppHeader from "@/components/AppHeader.vue";
 import { BRAND } from "@/config/brand.js";
 
-import springImg from "@/assets/images/courses/spring_boot.png";
-import vueImg from "@/assets/images/courses/vue_js.png";
-import genaiImg from "@/assets/images/courses/generative_ai.png";
-
 const stats = [
   { target: 1248, decimals: 0, unit: "", label: "등록된 API" },
   { target: 340, decimals: 0, unit: "", label: "API 제공사" },
@@ -361,16 +362,16 @@ const stats = [
   { target: 99.98, decimals: 2, unit: "%", label: "게이트웨이 가동률" },
 ];
 
+// 카테고리는 course-service의 ApiProduct.Category 라벨을 그대로 쓴다.
 const featuredApis = [
   {
     id: 1,
-    title: "문서 요약 API",
-    category: "텍스트/NLP",
+    title: "계약서 요약 API",
+    category: "문서",
     desc: "계약서·리포트를 핵심 문단으로 압축합니다.",
     subs: "1,204",
     price: "₩89,000",
-    thumbSrc: springImg,
-    tone: "tone-blue",
+    tone: "tone-amber",
   },
   {
     id: 2,
@@ -379,23 +380,21 @@ const featuredApis = [
     desc: "상품 사진에서 카테고리와 속성을 추출합니다.",
     subs: "862",
     price: "₩69,000",
-    thumbSrc: vueImg,
-    tone: "tone-teal",
+    tone: "tone-violet",
   },
   {
     id: 3,
-    title: "생성형 카피라이팅 API",
-    category: "생성형 AI",
+    title: "마케팅 카피 생성 API",
+    category: "생성형",
     desc: "브랜드 톤에 맞춘 마케팅 문구를 생성합니다.",
     subs: "733",
     price: "₩75,000",
-    thumbSrc: genaiImg,
-    tone: "tone-violet",
+    tone: "tone-pink",
   },
 ];
 
 const catalogRows = [
-  { name: "문서 요약 API", price: "₩89,000" },
+  { name: "계약서 요약 API", price: "₩89,000" },
   { name: "감정 분석 API", price: "₩54,000" },
   { name: "문서 분류 API", price: "₩61,000" },
   { name: "개체명 추출 API", price: "₩47,000" },
@@ -406,29 +405,29 @@ const steps = [
     title: "카탈로그에서 비교",
     desc: "카테고리·요금·구독 기업 수를 나란히 놓고 필요한 API를 고릅니다.",
     points: [
-      "텍스트·비전·음성·데이터 분류",
+      "비전·음성·언어·문서 등 8개 카테고리",
       "요금과 인기도를 한 화면에서 확인",
     ],
   },
   {
     title: "크레딧으로 구독 결제",
     desc: "별도 계약 없이 보유 크레딧을 차감해 구독을 시작합니다.",
-    points: ["결제와 구독 신청이 한 번에 처리", "기업별 사용 내역 자동 기록"],
+    points: ["신청과 동시에 결제 요청 생성", "기업별 결제 내역 자동 기록"],
   },
   {
-    title: "발급된 Key로 호출",
-    desc: "구독이 활성화되면 API Key가 바로 발급돼 그대로 연동하면 됩니다.",
+    title: "결제 승인되면 바로 활성화",
+    desc: "결제가 승인되는 순간 구독 상태가 ACTIVE로 바뀌어 사용할 수 있습니다.",
     points: [
-      "구독 상태가 ACTIVE가 되는 즉시 발급",
-      "내 구독 목록에서 언제든 확인",
+      "PENDING에서 ACTIVE로 자동 전환",
+      "내 구독 목록에서 상태를 바로 확인",
     ],
   },
 ];
 
 const buyerPoints = [
   "카테고리별 스펙·요금 비교",
-  "사용 패턴 기반 추천 API",
-  "구독 현황과 크레딧 사용 내역 확인",
+  "구독 이력 기반 추천 API",
+  "구독 현황과 결제 상태 확인",
 ];
 
 const providerPoints = [
@@ -1050,24 +1049,22 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
-.api-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 9px;
-}
-
-.tone-blue {
-  background: #ebf3ff;
-}
-.tone-teal {
-  background: #e6faf5;
+.tone-amber {
+  background: #fff4d6;
+  color: #b45309;
 }
 .tone-violet {
   background: #f1eeff;
+  color: #6d3fe0;
+}
+.tone-pink {
+  background: #ffe9f2;
+  color: #c72c62;
 }
 
 .api-cat {
@@ -1336,29 +1333,42 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-/* 03 Key */
-.keybox {
+/* 03 구독 상태 전환 */
+.statebox {
   margin: 18px 18px 0;
-  padding: 16px;
+  padding: 18px 16px;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.28);
   border: 1px dashed var(--d-line-2);
   display: flex;
-  flex-direction: column;
-  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
 }
 
-.key-label {
-  font-size: 11.5px;
-  color: var(--d-text-3);
-}
-
-.key-value {
+.state-step {
   font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.state-step.done {
+  color: var(--d-text-3);
+  border-color: var(--d-line-2);
+  text-decoration: line-through;
+}
+
+.state-step.now {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.state-arrow {
+  color: var(--d-text-3);
   font-size: 14px;
-  color: #fcd34d;
-  letter-spacing: 0.02em;
-  word-break: break-all;
 }
 
 .panel-code {

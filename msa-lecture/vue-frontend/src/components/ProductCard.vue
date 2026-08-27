@@ -1,39 +1,25 @@
 <template>
   <router-link
-    :to="`/courses/${course.id}`"
+    :to="`/products/${product.id}`"
     class="api-card surface surface-hover"
   >
     <div class="api-card-head">
-      <div class="api-thumb" :class="thumbBg">
-        <img
-          v-if="thumbSrc"
-          :src="thumbSrc"
-          :alt="course.title"
-          class="thumb-img"
-        />
-        <span v-else class="thumb-placeholder">{{
-          course.category?.charAt(0)
-        }}</span>
-      </div>
-      <span class="badge" :class="badgeClass">{{ course.category }}</span>
+      <span class="cat-tile" :class="style.tone">{{ label.charAt(0) }}</span>
+      <span class="badge" :class="style.badge">{{ label }}</span>
     </div>
 
     <div class="api-body">
-      <h3 class="api-title">{{ course.title }}</h3>
-      <p class="api-provider">{{ course.instructorName }}</p>
+      <h3 class="api-title">{{ product.title }}</h3>
+      <p class="api-provider">{{ product.providerName || "제공사 미확인" }}</p>
     </div>
 
     <div class="api-foot">
       <span class="api-subs">
-        <span class="tabular">{{
-          course.enrollmentCount?.toLocaleString() ?? 0
-        }}</span
+        <span class="tabular">{{ subscriberCount }}</span
         >개사 구독
       </span>
       <span class="api-price">
-        ₩<span class="tabular">{{
-          Number(course.price).toLocaleString()
-        }}</span>
+        ₩<span class="tabular">{{ price }}</span>
         <i>/월</i>
       </span>
     </div>
@@ -42,38 +28,20 @@
 
 <script setup>
 import { computed } from "vue";
+import { categoryLabel, categoryStyle } from "@/config/catalog.js";
 
 const props = defineProps({
-  course: { type: Object, required: true },
+  product: { type: Object, required: true },
 });
 
-const categoryConfig = {
-  백엔드: { bg: "thumb-teal", badge: "badge-teal", thumb: "spring_boot" },
-  프론트엔드: { bg: "thumb-teal", badge: "badge-teal", thumb: "vue_js" },
-  DevOps: { bg: "thumb-blue", badge: "badge-blue", thumb: "docker" },
-  데이터: { bg: "thumb-purple", badge: "badge-purple", thumb: "python" },
-  AI: { bg: "thumb-pink", badge: "badge-pink", thumb: "generative_ai" },
-};
+const label = computed(() => categoryLabel(props.product.category));
+const style = computed(() => categoryStyle(props.product.category));
 
-const config = computed(
-  () =>
-    categoryConfig[props.course.category] || {
-      bg: "thumb-gray",
-      badge: "badge-gray",
-    },
+const subscriberCount = computed(() =>
+  Number(props.product.subscriberCount ?? 0).toLocaleString(),
 );
-const thumbBg = computed(() => config.value.bg);
-const badgeClass = computed(() => config.value.badge);
 
-const thumbSrc = computed(() => {
-  const key = props.course.thumbnail || config.value.thumb;
-  if (!key) return null;
-  try {
-    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href;
-  } catch {
-    return null;
-  }
-});
+const price = computed(() => Number(props.product.price ?? 0).toLocaleString());
 </script>
 
 <style scoped>
@@ -90,46 +58,6 @@ const thumbSrc = computed(() => {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;
-}
-
-.api-thumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.thumb-teal {
-  background: #e6faf5;
-}
-.thumb-blue {
-  background: #e8f3ff;
-}
-.thumb-purple {
-  background: #f3f0ff;
-}
-.thumb-pink {
-  background: #fff0f6;
-}
-.thumb-gray {
-  background: var(--color-bg-secondary);
-}
-
-.thumb-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 8px;
-}
-
-.thumb-placeholder {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--color-text-muted);
 }
 
 .api-body {

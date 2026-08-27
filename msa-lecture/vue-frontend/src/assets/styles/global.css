@@ -214,6 +214,45 @@ img {
   color: #4e5968;
 }
 
+/* ── 카테고리 타일 (카드/상세/구독 목록 공용) ── */
+.cat-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.tone-blue {
+  background: #e8f3ff;
+  color: #1b64da;
+}
+.tone-teal {
+  background: #e6faf5;
+  color: #0ca678;
+}
+.tone-violet {
+  background: #f3f0ff;
+  color: #7048e8;
+}
+.tone-amber {
+  background: #fff9db;
+  color: #e67700;
+}
+.tone-pink {
+  background: #fff0f6;
+  color: #d6336c;
+}
+.tone-gray {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
 /* ── App Shell (공통 레이아웃) ── */
 .app-shell {
   display: flex;
