@@ -41,15 +41,6 @@
               </span>
             </div>
           </div>
-
-          <div class="quick-links">
-            <router-link to="/subscriptions" class="btn btn-ghost">
-              내 구독 보기
-            </router-link>
-            <router-link to="/products" class="btn btn-primary">
-              카탈로그에서 추천 받기
-            </router-link>
-          </div>
         </section>
 
         <!-- 제공사: 대시보드 -->
