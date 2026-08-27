@@ -27,6 +27,8 @@
           </div>
         </header>
 
+        <RecommendStrip v-if="!isProvider" />
+
         <div class="toolbar">
           <div class="filter-bar">
             <button
@@ -106,6 +108,7 @@ import { computed, onMounted, ref } from "vue";
 import AppSideRail from "@/components/AppSideRail.vue";
 import ProductCard from "@/components/ProductCard.vue";
 import ProductDetailDrawer from "@/components/ProductDetailDrawer.vue";
+import RecommendStrip from "@/components/RecommendStrip.vue";
 import { useProductStore } from "@/store/product.js";
 import { useAuthStore } from "@/store/auth.js";
 
