@@ -199,6 +199,7 @@ import ProductCard from "@/components/ProductCard.vue";
 import { useAuthStore } from "@/store/auth.js";
 import { useProductStore } from "@/store/product.js";
 import { subscriptionApi } from "@/api/subscription.js";
+import { recommendApi } from "@/api/recommend.js";
 import { productApi } from "@/api/product.js";
 import { productStatus } from "@/config/catalog.js";
 
@@ -241,7 +242,7 @@ async function loadRecommendations() {
     }
 
     // recommend-service는 공통 봉투 없이 바로 결과를 내려준다.
-    const { data } = await subscriptionApi.getRecommendations(auth.user.id);
+    const { data } = await recommendApi.getRecommendations(auth.user.id);
 
     recommendations.value = Array.isArray(data?.recommendedProducts)
       ? data.recommendedProducts.map(productStore.normalizeProduct)
