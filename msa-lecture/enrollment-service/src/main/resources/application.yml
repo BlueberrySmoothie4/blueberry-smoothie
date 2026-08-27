@@ -60,6 +60,7 @@ eureka:
     prefer-ip-address: true
 
 # 서비스 간 통신 URL (Eureka lb:// 사용 대신 컨테이너 DNS 직접 호출)
+# 컨테이너/Eureka 등록명은 기존 그대로 유지 (course-service = API 상품 카탈로그)
 service:
   course-service:
     url: http://course-service:8082
@@ -70,7 +71,7 @@ service:
 kafka:
   topic:
     payment-completed: payment.completed
-    enrollment-completed: enrollment.completed
+    subscription-completed: subscription.completed
 
 springdoc:
   api-docs:

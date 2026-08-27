@@ -4,12 +4,12 @@
       <!-- 좌측 브랜딩 -->
       <div class="login-left">
         <div class="brand">
-          <img src="@/assets/images/logo/main_logo.png" alt="LearnNexus" class="brand-logo" />
-          <span class="brand-name">LearnNexus</span>
+          <img src="@/assets/images/logo/main_logo.png" alt="Blueberry Smoothie" class="brand-logo" />
+          <span class="brand-name">Blueberry Smoothie</span>
         </div>
         <div class="brand-content">
-          <h2>다시 만나서<br>반갑습니다</h2>
-          <p>로그인하고 나만의 학습 여정을 이어가세요.</p>
+          <h2>필요한 AI 기능을<br>바로 연결하세요</h2>
+          <p>검증된 AI API를 구독하고 오늘 바로 서비스에 붙이세요.</p>
           <ul class="feature-list">
             <li v-for="f in features" :key="f">
               <span class="dot"></span>{{ f }}
@@ -26,7 +26,7 @@
           <!-- 로그인 영역 -->
           <div v-if="!showRegister" class="section">
             <h3 class="section-title">로그인</h3>
-            <p class="section-desc">LearnNexus 계정으로 로그인합니다.</p>
+            <p class="section-desc">Blueberry Smoothie 계정으로 로그인합니다.</p>
             <button class="btn btn-primary btn-full" @click="handleOAuth">로그인</button>
             <div class="switch-link">
               계정이 없으신가요?
@@ -53,8 +53,8 @@
               <div class="form-group">
                 <label class="form-label">역할</label>
                 <select v-model="registerForm.role" class="form-input">
-                  <option value="STUDENT">학생</option>
-                  <option value="INSTRUCTOR">강사</option>
+                  <option value="BUYER">구매 기업</option>
+                  <option value="PROVIDER">API 제공사</option>
                 </select>
               </div>
               <div v-if="error" class="error-msg">{{ error }}</div>
@@ -88,9 +88,9 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-const registerForm = ref({ name: '', email: '', password: '', role: 'STUDENT' })
+const registerForm = ref({ name: '', email: '', password: '', role: 'BUYER' })
 
-const features = ['수강 중인 강의 이어보기', '맞춤 강의 추천', '수료증 관리']
+const features = ['구독 중인 API 관리', '맞춤 API 추천', '사용 내역 조회']
 
 function handleOAuth() {
   auth.redirectToLogin()
@@ -103,7 +103,7 @@ async function handleRegister() {
   try {
     await authApi.register(registerForm.value)
     success.value = '회원가입 완료! 로그인 페이지로 이동합니다.'
-    registerForm.value = { name: '', email: '', password: '', role: 'STUDENT' }
+    registerForm.value = { name: '', email: '', password: '', role: 'BUYER' }
     setTimeout(() => {
       showRegister.value = false
       success.value = ''

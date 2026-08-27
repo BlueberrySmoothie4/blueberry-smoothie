@@ -19,9 +19,9 @@ public class PaymentServiceClient {
     /**
      * Payment Service: 결제 요청 (동기 REST)
      */
-    public PaymentResult requestPayment(Long userId, Long courseId, BigDecimal amount) {
+    public PaymentResult requestPayment(Long userId, Long productId, BigDecimal amount) {
         try {
-            PaymentRequest request = new PaymentRequest(userId, courseId, amount);
+            PaymentRequest request = new PaymentRequest(userId, productId, amount);
 
             PaymentResult result = webClientBuilder.build()
                     .post()
@@ -31,13 +31,13 @@ public class PaymentServiceClient {
                     .bodyToMono(PaymentResult.class)
                     .block();
 
-            log.info("[PaymentServiceClient] 결제 요청 완료 - userId: {}, courseId: {}, result: {}",
-                    userId, courseId, result != null ? result.getStatus() : "null");
+            log.info("[PaymentServiceClient] 결제 요청 완료 - userId: {}, productId: {}, result: {}",
+                    userId, productId, result != null ? result.getStatus() : "null");
 
             return result;
         } catch (Exception e) {
-            log.error("[PaymentServiceClient] 결제 요청 실패 - userId: {}, courseId: {}, error: {}",
-                    userId, courseId, e.getMessage(), e);
+            log.error("[PaymentServiceClient] 결제 요청 실패 - userId: {}, productId: {}, error: {}",
+                    userId, productId, e.getMessage(), e);
             throw new RuntimeException("Payment Service 연결 실패");
         }
     }
@@ -46,12 +46,12 @@ public class PaymentServiceClient {
     @NoArgsConstructor
     static class PaymentRequest {
         private Long userId;
-        private Long courseId;
+        private Long productId;
         private BigDecimal amount;
 
-        PaymentRequest(Long userId, Long courseId, BigDecimal amount) {
+        PaymentRequest(Long userId, Long productId, BigDecimal amount) {
             this.userId = userId;
-            this.courseId = courseId;
+            this.productId = productId;
             this.amount = amount;
         }
     }

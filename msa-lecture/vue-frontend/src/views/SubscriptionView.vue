@@ -6,16 +6,16 @@
         <div class="sidebar-section">
           <div class="sidebar-label">메뉴</div>
 
-          <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> 강의 목록
+          <router-link to="/products" class="sidebar-item">
+            <span class="si-icon">🧩</span> API 상품 목록
           </router-link>
 
           <router-link
-            v-if="!isInstructor"
-            to="/enrollments"
+            v-if="!isProvider"
+            to="/subscriptions"
             class="sidebar-item active"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 내 구독 목록
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item">
@@ -35,24 +35,24 @@
       </aside>
 
       <main class="main-content">
-        <h1 class="page-title">내 수강 목록</h1>
+        <h1 class="page-title">내 구독 목록</h1>
 
         <div v-if="loading" class="loading-center">
           <div class="spinner"></div>
         </div>
 
-        <div v-else-if="enrollments.length" class="enrollment-list fade-in">
-          <div v-for="item in enrollments" :key="item.id" class="enrollment-card">
-            <div class="enroll-thumb" :class="getThumbBg(item.course?.category)">
-              <img :src="getThumbSrc(item.course)" :alt="item.course?.title" />
+        <div v-else-if="subscriptions.length" class="enrollment-list fade-in">
+          <div v-for="item in subscriptions" :key="item.id" class="enrollment-card">
+            <div class="enroll-thumb" :class="getThumbBg(item.product?.category)">
+              <img :src="getThumbSrc(item.product)" :alt="item.product?.title" />
             </div>
 
             <div class="enroll-info">
-              <span class="badge" :class="getBadge(item.course?.category)">
-                {{ item.course?.category }}
+              <span class="badge" :class="getBadge(item.product?.category)">
+                {{ item.product?.category }}
               </span>
-              <h3 class="enroll-title">{{ item.course?.title }}</h3>
-              <p class="enroll-instructor">강사: {{ item.course?.instructorName }}</p>
+              <h3 class="enroll-title">{{ item.product?.title }}</h3>
+              <p class="enroll-instructor">제공사: {{ item.product?.providerName }}</p>
             </div>
 
             <div class="enroll-status">
@@ -62,10 +62,10 @@
                   item.status === 'ACTIVE' ? 'status-active' : 'status-pending'
                 ]"
               >
-                {{ item.status === 'ACTIVE' ? '수강 중' : '대기 중' }}
+                {{ item.status === 'ACTIVE' ? '구독 중' : '대기 중' }}
               </span>
-              <router-link :to="`/courses/${item.courseId}`" class="btn btn-ghost btn-sm">
-                강의 보기
+              <router-link :to="`/products/${item.productId}`" class="btn btn-ghost btn-sm">
+                상품 보기
               </router-link>
             </div>
           </div>
@@ -73,9 +73,9 @@
 
         <div v-else class="empty-state">
           <p class="empty-icon">📭</p>
-          <p>수강 중인 강의가 없습니다.</p>
-          <router-link to="/courses" class="btn btn-primary" style="margin-top:16px;">
-            강의 둘러보기
+          <p>구독 중인 API 상품이 없습니다.</p>
+          <router-link to="/products" class="btn btn-primary" style="margin-top:16px;">
+            API 상품 둘러보기
           </router-link>
         </div>
       </main>
@@ -87,23 +87,25 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import { enrollmentApi } from '@/api/enrollment.js'
+import { subscriptionApi } from '@/api/subscription.js'
 import { useAuthStore } from '@/store/auth.js'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-const enrollments = ref([])
+const subscriptions = ref([])
 const loading = ref(true)
 
-const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
+const isProvider = computed(() => auth.user?.role === 'PROVIDER')
 
 const categoryConfig = {
-  '백엔드': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'spring_boot' },
-  '프론트엔드': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'vue_js' },
-  'DevOps': { bg: 'thumb-blue', badge: 'badge-blue', thumb: 'kubernetes' },
-  '데이터': { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
-  'AI': { bg: 'thumb-pink', badge: 'badge-pink', thumb: 'generative_ai' },
+  '비전': { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
+  '음성': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'vue_js' },
+  '언어': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'spring_boot' },
+  '문서': { bg: 'thumb-blue', badge: 'badge-blue', thumb: 'docker' },
+  '생성형': { bg: 'thumb-pink', badge: 'badge-pink', thumb: 'generative_ai' },
+  '예측': { bg: 'thumb-blue', badge: 'badge-blue', thumb: 'kubernetes' },
+  '이상탐지': { bg: 'thumb-amber', badge: 'badge-amber', thumb: 'docker' },
 }
 
 function getThumbBg(cat) {
@@ -114,8 +116,8 @@ function getBadge(cat) {
   return categoryConfig[cat]?.badge || 'badge-gray'
 }
 
-function getThumbSrc(course) {
-  const key = course?.thumbnail || categoryConfig[course?.category]?.thumb
+function getThumbSrc(product) {
+  const key = product?.thumbnail || categoryConfig[product?.category]?.thumb
   if (!key) return ''
   try {
     return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href
@@ -130,27 +132,27 @@ function handleLogout() {
 }
 
 onMounted(async () => {
-  // 강사는 이 페이지 접근 불가 → 마이페이지로 이동
-  if (isInstructor.value) {
-    console.warn('[EnrollmentView] instructor tried to access /enrollments, redirect to /mypage')
+  // 제공사는 이 페이지 접근 불가 → 마이페이지로 이동
+  if (isProvider.value) {
+    console.warn('[SubscriptionView] provider tried to access /subscriptions, redirect to /mypage')
     router.replace('/mypage')
     return
   }
 
   try {
-    const res = await enrollmentApi.getMyEnrollments()
-    console.log('[EnrollmentView] my enrollments response:', res.data)
+    const res = await subscriptionApi.getMySubscriptions()
+    console.log('[SubscriptionView] my subscriptions response:', res.data)
 
     if (Array.isArray(res.data?.data)) {
-      enrollments.value = res.data.data
+      subscriptions.value = res.data.data
     } else if (Array.isArray(res.data)) {
-      enrollments.value = res.data
+      subscriptions.value = res.data
     } else {
-      enrollments.value = []
+      subscriptions.value = []
     }
   } catch (error) {
-    console.error('[EnrollmentView] failed to load enrollments:', error)
-    enrollments.value = []
+    console.error('[SubscriptionView] failed to load subscriptions:', error)
+    subscriptions.value = []
   } finally {
     loading.value = false
   }

@@ -12,8 +12,8 @@ public class KafkaConfig {
     @Value("${kafka.topic.payment-completed}")
     private String paymentCompletedTopic;
 
-    @Value("${kafka.topic.enrollment-completed}")
-    private String enrollmentCompletedTopic;
+    @Value("${kafka.topic.subscription-completed}")
+    private String subscriptionCompletedTopic;
 
     @Bean
     public NewTopic paymentCompletedTopic() {
@@ -24,8 +24,8 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic enrollmentCompletedTopic() {
-        return TopicBuilder.name(enrollmentCompletedTopic)
+    public NewTopic subscriptionCompletedTopic() {
+        return TopicBuilder.name(subscriptionCompletedTopic)
                 .partitions(3)
                 .replicas(1)
                 .build();

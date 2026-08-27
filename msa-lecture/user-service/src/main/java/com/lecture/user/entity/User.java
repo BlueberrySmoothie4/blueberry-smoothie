@@ -30,7 +30,11 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
+    /**
+     * 도메인 상 역할은 BUYER / PROVIDER 지만,
+     * DB에는 레거시 문자열(STUDENT / INSTRUCTOR)로 저장한다. RoleConverter 주석 참조.
+     */
+    @Convert(converter = RoleConverter.class)
     @Column(nullable = false)
     private Role role;
 
@@ -42,6 +46,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     public enum Role {
-        STUDENT, INSTRUCTOR
+        BUYER,    // API 구매 기업
+        PROVIDER  // API 제공사
     }
 }

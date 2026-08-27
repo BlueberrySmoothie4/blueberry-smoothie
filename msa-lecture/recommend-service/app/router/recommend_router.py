@@ -15,11 +15,11 @@ async def get_recommendations(
     token_payload: dict = Depends(verify_token)
 ):
     """
-    GET /recommend/{userId} - 사용자 기반 강의 추천
+    GET /recommend/{userId} - 사용자 기반 API 상품 추천
 
     추천 규칙:
-    - 수강 이력 있음: 최빈 카테고리 기반 미수강 강의 추천 (수강생 수 기준 정렬)
-    - 수강 이력 없음: 전체 인기 강의 추천
+    - 구독 이력 있음: 최빈 카테고리 기반 미구독 상품 추천 (구독자 수 기준 정렬)
+    - 구독 이력 없음: 전체 인기 상품 추천
     """
     logger.info(f"[Router] 추천 요청 - userId: {user_id}")
     return await recommend_service.get_recommendations(user_id)

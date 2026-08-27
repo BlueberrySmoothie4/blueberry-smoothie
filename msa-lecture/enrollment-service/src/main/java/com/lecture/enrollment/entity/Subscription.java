@@ -9,14 +9,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "enrollments",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "course_id"}))
+@Table(name = "subscriptions",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class Enrollment {
+public class Subscription {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,8 +25,8 @@ public class Enrollment {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "course_id", nullable = false)
-    private Long courseId;
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -41,8 +41,8 @@ public class Enrollment {
     private LocalDateTime updatedAt;
 
     public enum Status {
-        PENDING,   // 수강신청 완료, 결제 대기
-        ACTIVE,    // 결제 완료, 수강 활성화
+        PENDING,   // 구독 신청 완료, 결제 대기
+        ACTIVE,    // 결제 완료, 구독 활성화 (= API 호출 권한 보유)
         CANCELLED  // 취소
     }
 

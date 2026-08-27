@@ -6,16 +6,16 @@
         <div class="sidebar-section">
           <div class="sidebar-label">메뉴</div>
 
-          <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> 강의 목록
+          <router-link to="/products" class="sidebar-item">
+            <span class="si-icon">🧩</span> API 상품 목록
           </router-link>
 
           <router-link
-            v-if="!isInstructor"
-            to="/enrollments"
+            v-if="!isProvider"
+            to="/subscriptions"
             class="sidebar-item"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 내 구독 목록
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item active">
@@ -38,15 +38,15 @@
           <div class="profile-info">
             <h2 class="profile-name">{{ auth.user?.name || '사용자' }}</h2>
             <p class="profile-email">{{ auth.user?.email || '-' }}</p>
-            <span class="badge" :class="isInstructor ? 'badge-amber' : 'badge-blue'">
-              {{ isInstructor ? '강사' : '학생' }}
+            <span class="badge" :class="isProvider ? 'badge-amber' : 'badge-blue'">
+              {{ isProvider ? 'API 제공사' : '구매 기업' }}
             </span>
           </div>
         </div>
 
-        <!-- 학생 화면 -->
-        <section v-if="!isInstructor" class="recommend-section">
-          <h3 class="section-title">추천 강의</h3>
+        <!-- 구매 기업 화면 -->
+        <section v-if="!isProvider" class="recommend-section">
+          <h3 class="section-title">추천 API 상품</h3>
 
           <p v-if="recommendMessage" class="recommend-message">
             {{ recommendMessage }}
@@ -63,7 +63,7 @@
           </div>
 
           <div v-else-if="recommendations.length" class="recommend-grid fade-in">
-            <CourseCard v-for="c in recommendations" :key="c.id" :course="c" />
+            <ProductCard v-for="p in recommendations" :key="p.id" :product="p" />
           </div>
 
           <p v-else-if="recommendError" class="empty-text">
@@ -71,29 +71,29 @@
           </p>
 
           <p v-else class="empty-text">
-            아직 추천할 강의가 없습니다.
+            아직 추천할 API 상품이 없습니다.
           </p>
         </section>
 
-        <!-- 강사 화면 -->
+        <!-- API 제공사 화면 -->
         <section v-else class="instructor-section">
           <div class="section-head">
-            <h3 class="section-title">내가 등록한 강좌</h3>
-            <span class="section-subtitle">등록한 강좌와 강좌별 수강생 수를 확인할 수 있습니다.</span>
+            <h3 class="section-title">내가 등록한 API 상품</h3>
+            <span class="section-subtitle">등록한 상품과 상품별 구독 기업 수를 확인할 수 있습니다.</span>
           </div>
 
           <div class="summary-cards">
             <div class="summary-card">
-              <div class="summary-label">등록 강좌 수</div>
-              <div class="summary-value">{{ myCourses.length }}</div>
+              <div class="summary-label">등록 상품 수</div>
+              <div class="summary-value">{{ myProducts.length }}</div>
             </div>
             <div class="summary-card">
-              <div class="summary-label">총 수강생 수</div>
-              <div class="summary-value">{{ totalEnrollmentCount }}</div>
+              <div class="summary-label">총 구독 기업 수</div>
+              <div class="summary-value">{{ totalSubscriberCount }}</div>
             </div>
           </div>
 
-          <div v-if="instructorLoading" class="loading-row instructor-loading">
+          <div v-if="providerLoading" class="loading-row instructor-loading">
             <div v-for="i in 3" :key="i" class="skeleton-card">
               <div class="skeleton-thumb"></div>
               <div class="skeleton-body">
@@ -103,60 +103,60 @@
             </div>
           </div>
 
-          <div v-else-if="myCourses.length" class="instructor-course-list fade-in">
+          <div v-else-if="myProducts.length" class="instructor-course-list fade-in">
             <div
-              v-for="course in myCourses"
-              :key="course.id"
+              v-for="product in myProducts"
+              :key="product.id"
               class="instructor-course-card"
             >
               <div class="course-card-top">
                 <div>
-                  <h4 class="course-title">{{ course.title }}</h4>
-                  <p class="course-desc">{{ course.description || '설명이 없습니다.' }}</p>
+                  <h4 class="course-title">{{ product.title }}</h4>
+                  <p class="course-desc">{{ product.description || '설명이 없습니다.' }}</p>
                 </div>
                 <span
                   class="status-badge"
-                  :class="course.status === 'ACTIVE' ? 'status-active' : 'status-inactive'"
+                  :class="product.status === 'PUBLISHED' ? 'status-active' : 'status-inactive'"
                 >
-                  {{ course.status || 'UNKNOWN' }}
+                  {{ product.status || 'UNKNOWN' }}
                 </span>
               </div>
 
               <div class="course-meta-grid">
                 <div class="meta-box">
                   <div class="meta-label">카테고리</div>
-                  <div class="meta-value">{{ course.category || '-' }}</div>
+                  <div class="meta-value">{{ product.category || '-' }}</div>
                 </div>
                 <div class="meta-box">
-                  <div class="meta-label">가격</div>
-                  <div class="meta-value">{{ formatPrice(course.price) }}</div>
+                  <div class="meta-label">월 구독료</div>
+                  <div class="meta-value">{{ formatPrice(product.price) }}</div>
                 </div>
                 <div class="meta-box">
-                  <div class="meta-label">수강생 수</div>
+                  <div class="meta-label">구독 기업 수</div>
                   <div class="meta-value">
-                    {{ course.enrollment_count ?? course.enrollmentCount ?? 0 }}명
+                    {{ product.subscriber_count ?? product.subscriberCount ?? 0 }}개
                   </div>
                 </div>
                 <div class="meta-box">
-                  <div class="meta-label">강좌 ID</div>
-                  <div class="meta-value">#{{ course.id }}</div>
+                  <div class="meta-label">상품 ID</div>
+                  <div class="meta-value">#{{ product.id }}</div>
                 </div>
               </div>
 
               <div class="course-card-actions">
-                <router-link :to="`/courses/${course.id}`" class="action-btn action-primary">
-                  강좌 보기
+                <router-link :to="`/products/${product.id}`" class="action-btn action-primary">
+                  상품 보기
                 </router-link>
               </div>
             </div>
           </div>
 
-          <p v-else-if="instructorError" class="empty-text">
-            {{ instructorError }}
+          <p v-else-if="providerError" class="empty-text">
+            {{ providerError }}
           </p>
 
           <p v-else class="empty-text">
-            아직 등록한 강좌가 없습니다.
+            아직 등록한 API 상품이 없습니다.
           </p>
         </section>
       </main>
@@ -168,30 +168,32 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import CourseCard from '@/components/CourseCard.vue'
+import ProductCard from '@/components/ProductCard.vue'
 import { useAuthStore } from '@/store/auth.js'
-import { enrollmentApi } from '@/api/enrollment.js'
-import { courseApi } from '@/api/course.js'
+import { useProductStore } from '@/store/product.js'
+import { subscriptionApi } from '@/api/subscription.js'
+import { productApi } from '@/api/product.js'
 
 const router = useRouter()
 const auth = useAuthStore()
+const productStore = useProductStore()
 
-const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
+const isProvider = computed(() => auth.user?.role === 'PROVIDER')
 
-/* 학생용 */
+/* 구매 기업용 */
 const recommendations = ref([])
 const recommendLoading = ref(true)
 const recommendError = ref('')
 const recommendMessage = ref('')
 
-/* 강사용 */
-const myCourses = ref([])
-const instructorLoading = ref(true)
-const instructorError = ref('')
+/* API 제공사용 */
+const myProducts = ref([])
+const providerLoading = ref(true)
+const providerError = ref('')
 
-const totalEnrollmentCount = computed(() =>
-  myCourses.value.reduce((sum, course) => {
-    const count = Number(course.enrollment_count ?? course.enrollmentCount ?? 0)
+const totalSubscriberCount = computed(() =>
+  myProducts.value.reduce((sum, product) => {
+    const count = Number(product.subscriber_count ?? product.subscriberCount ?? 0)
     return sum + (Number.isNaN(count) ? 0 : count)
   }, 0)
 )
@@ -204,50 +206,52 @@ function handleLogout() {
 function formatPrice(price) {
   const value = Number(price ?? 0)
   if (Number.isNaN(value)) return '-'
-  return `${value.toLocaleString()}원`
+  return `${value.toLocaleString()}원/월`
 }
 
 /**
- * course 객체에서 강사 식별자 추출
+ * product 객체에서 제공사 식별자 추출
  */
-function getCourseInstructorId(course) {
+function getProductProviderId(product) {
   return (
-    course.instructorId ??
-    course.instructor_id ??
-    course.instructor ??
-    course.teacherId ??
-    course.teacher_id ??
+    product.providerId ??
+    product.provider_id ??
+    product.provider ??
+    product.vendorId ??
+    product.vendor_id ??
     null
   )
 }
 
-async function loadStudentRecommendations() {
+async function loadBuyerRecommendations() {
   try {
     if (!auth.user) {
       console.warn('[MyPage] auth.user is missing')
-      recommendError.value = '추천 강의를 준비 중입니다.'
+      recommendError.value = '추천 API 상품을 준비 중입니다.'
       return
     }
 
     if (!auth.user.id) {
       console.warn('[MyPage] auth.user.id is missing:', auth.user)
-      recommendError.value = '추천 강의를 준비 중입니다.'
+      recommendError.value = '추천 API 상품을 준비 중입니다.'
       return
     }
 
-    const res = await enrollmentApi.getRecommendations(auth.user.id)
+    const res = await subscriptionApi.getRecommendations(auth.user.id)
     console.log('[MyPage] recommendation response:', res.data)
 
     const payload = res.data
 
-    if (Array.isArray(payload?.recommendedCourses)) {
-      recommendations.value = payload.recommendedCourses
+    // 추천 응답은 백엔드 enum(VISION 등)을 그대로 담고 있으므로
+    // 목록 화면과 동일하게 카테고리 라벨을 씌워준다.
+    if (Array.isArray(payload?.recommendedProducts)) {
+      recommendations.value = payload.recommendedProducts.map(productStore.normalizeProduct)
       recommendMessage.value = payload.message ?? ''
     } else if (Array.isArray(payload?.data)) {
-      recommendations.value = payload.data
+      recommendations.value = payload.data.map(productStore.normalizeProduct)
       recommendMessage.value = payload.message ?? ''
     } else if (Array.isArray(payload)) {
-      recommendations.value = payload
+      recommendations.value = payload.map(productStore.normalizeProduct)
       recommendMessage.value = ''
     } else {
       console.warn('[MyPage] unexpected recommendation response shape:', payload)
@@ -256,78 +260,62 @@ async function loadStudentRecommendations() {
     }
   } catch (error) {
     console.error('[MyPage] failed to load recommendations:', error)
-    recommendError.value = '현재 추천 강의를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    recommendError.value = '현재 추천 API 상품을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
   } finally {
     recommendLoading.value = false
   }
 }
 
-async function loadInstructorCourses() {
+async function loadProviderProducts() {
   try {
     if (!auth.user) {
-      console.warn('[MyPage] instructor auth.user is missing')
-      instructorError.value = '강좌 정보를 불러오지 못했습니다.'
+      console.warn('[MyPage] provider auth.user is missing')
+      providerError.value = 'API 상품 정보를 불러오지 못했습니다.'
       return
     }
 
     if (!auth.user.id) {
-      console.warn('[MyPage] instructor auth.user.id is missing:', auth.user)
-      instructorError.value = '강좌 정보를 불러오지 못했습니다.'
+      console.warn('[MyPage] provider auth.user.id is missing:', auth.user)
+      providerError.value = 'API 상품 정보를 불러오지 못했습니다.'
       return
     }
 
-    const res = await courseApi.getCourses()
-    console.log('[MyPage] course list response:', res.data)
+    const res = await productApi.getProducts()
+    console.log('[MyPage] product list response:', res.data)
 
-    let courses = []
+    let products = []
 
     if (Array.isArray(res.data?.data)) {
-      courses = res.data.data
+      products = res.data.data
     } else if (Array.isArray(res.data)) {
-      courses = res.data
+      products = res.data
     } else {
-      console.warn('[MyPage] unexpected course response shape:', res.data)
+      console.warn('[MyPage] unexpected product response shape:', res.data)
     }
 
-    console.log('[MyPage] auth.user =', auth.user)
-    console.log('[MyPage] courses =', courses)
-    console.log('[MyPage] first course =', courses[0])
+    const providerId = Number(auth.user.id)
 
-    courses.forEach(course => {
-      console.log('[MyPage] instructor fields check:', {
-        courseId: course.id,
-        instructorId: course.instructorId,
-        instructor_id: course.instructor_id,
-        instructor: course.instructor,
-        teacherId: course.teacherId,
-        teacher_id: course.teacher_id,
-        rawCourse: course
-      })
+    myProducts.value = products.filter(product => {
+      const productProviderId = Number(getProductProviderId(product))
+      return !Number.isNaN(productProviderId) && productProviderId === providerId
     })
 
-    const instructorId = Number(auth.user.id)
-
-    myCourses.value = courses.filter(course => {
-      const courseInstructorId = Number(getCourseInstructorId(course))
-      return !Number.isNaN(courseInstructorId) && courseInstructorId === instructorId
-    })
-
-    console.log('[MyPage] filtered myCourses =', myCourses.value)
+    console.log('[MyPage] filtered myProducts =', myProducts.value)
   } catch (error) {
-    console.error('[MyPage] failed to load instructor courses:', error)
-    instructorError.value = '현재 강좌 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    console.error('[MyPage] failed to load provider products:', error)
+    providerError.value = '현재 API 상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
   } finally {
-    instructorLoading.value = false
+    providerLoading.value = false
   }
 }
 
 onMounted(async () => {
-  if (isInstructor.value) {
+  if (isProvider.value) {
     recommendLoading.value = false
-    await loadInstructorCourses()
+    await loadProviderProducts()
   } else {
-    instructorLoading.value = false
-    await loadStudentRecommendations()
+    providerLoading.value = false
+    await loadBuyerRecommendations()
   }
 })
 </script>

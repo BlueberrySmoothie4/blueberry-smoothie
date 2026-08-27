@@ -2,31 +2,31 @@
   <div class="page-wrapper">
     <AppHeader />
 
-    <div class="detail-layout" v-if="course">
+    <div class="detail-layout" v-if="product">
       <div class="detail-hero">
         <div class="detail-hero-inner">
           <!-- 좌측 상세 정보 -->
           <div class="detail-info fade-in-up">
             <span class="badge" :class="badgeClass">{{ displayCategory }}</span>
-            <h1 class="detail-title">{{ course.title }}</h1>
+            <h1 class="detail-title">{{ product.title }}</h1>
             <p class="detail-desc">
-              {{ course.description || '실무 전문가가 직접 설계한 커리큘럼으로 체계적으로 학습하세요.' }}
+              {{ product.description || '엔드포인트 하나로 바로 연동할 수 있는 상용 AI API입니다.' }}
             </p>
 
             <div class="detail-meta">
-              <span>강사: {{ displayInstructorName }}</span>
-              <span>수강생: {{ displayEnrollmentCount }}명</span>
+              <span>제공사: {{ displayProviderName }}</span>
+              <span>구독 기업: {{ displaySubscriberCount }}개</span>
             </div>
           </div>
 
-          <!-- 우측 결제/수강 카드 -->
+          <!-- 우측 결제/구독 카드 -->
           <div class="enroll-card fade-in">
             <div class="enroll-thumb" :class="thumbBg">
-              <img v-if="thumbSrc" :src="thumbSrc" :alt="course.title" />
+              <img v-if="thumbSrc" :src="thumbSrc" :alt="product.title" />
             </div>
 
             <div class="enroll-body">
-              <div class="enroll-price">₩{{ displayPrice }}</div>
+              <div class="enroll-price">₩{{ displayPrice }}<span class="price-unit">/월</span></div>
 
               <button
                 class="btn btn-primary btn-full"
@@ -34,20 +34,20 @@
                 :disabled="buttonDisabled"
                 :class="{ 'btn-disabled': buttonDisabled }"
               >
-                <span v-if="enrolling">처리 중...</span>
+                <span v-if="subscribing">처리 중...</span>
                 <span v-else>{{ buttonLabel }}</span>
               </button>
 
-              <div v-if="enrollError" class="error-msg">{{ enrollError }}</div>
+              <div v-if="subscribeError" class="error-msg">{{ subscribeError }}</div>
 
               <p class="helper-text" v-if="helperText">
                 {{ helperText }}
               </p>
 
               <ul class="enroll-info-list">
-                <li>✅ 즉시 수강 가능</li>
-                <li>✅ 평생 소장</li>
-                <li>✅ 수료증 발급</li>
+                <li>✅ 결제 즉시 호출 권한 활성화</li>
+                <li>✅ 월 구독 정액제 (호출 수 제한 없음)</li>
+                <li>✅ 사용 내역 조회 제공</li>
               </ul>
             </div>
           </div>
@@ -60,7 +60,7 @@
     </div>
 
     <div v-else class="loading-center">
-      <p class="empty-text">강의 정보를 불러오지 못했습니다.</p>
+      <p class="empty-text">API 상품 정보를 불러오지 못했습니다.</p>
     </div>
   </div>
 </template>
@@ -69,64 +69,66 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import { useCourseStore } from '@/store/course.js'
-import { enrollmentApi } from '@/api/enrollment.js'
+import { useProductStore } from '@/store/product.js'
+import { subscriptionApi } from '@/api/subscription.js'
 import { useAuthStore } from '@/store/auth.js'
 
 const route = useRoute()
 const router = useRouter()
-const courseStore = useCourseStore()
+const productStore = useProductStore()
 const auth = useAuthStore()
 
-const enrolling = ref(false)
-const enrollError = ref('')
-const enrollmentStatus = ref('NONE') // NONE | PENDING | ACTIVE
+const subscribing = ref(false)
+const subscribeError = ref('')
+const subscriptionStatus = ref('NONE') // NONE | PENDING | ACTIVE
 
-const course = computed(() => courseStore.selectedCourse)
-const loading = computed(() => courseStore.loading)
-const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
+const product = computed(() => productStore.selectedProduct)
+const loading = computed(() => productStore.loading)
+const isProvider = computed(() => auth.user?.role === 'PROVIDER')
 
 const categoryConfig = {
-  '백엔드': { badge: 'badge-teal', bg: 'thumb-teal', thumb: 'spring_boot' },
-  '프론트엔드': { badge: 'badge-teal', bg: 'thumb-teal', thumb: 'vue_js' },
-  'DevOps': { badge: 'badge-blue', bg: 'thumb-blue', thumb: 'kubernetes' },
-  '데이터': { badge: 'badge-purple', bg: 'thumb-purple', thumb: 'python' },
-  'AI': { badge: 'badge-pink', bg: 'thumb-pink', thumb: 'generative_ai' },
+  '비전': { badge: 'badge-purple', bg: 'thumb-purple', thumb: 'python' },
+  '음성': { badge: 'badge-teal', bg: 'thumb-teal', thumb: 'vue_js' },
+  '언어': { badge: 'badge-teal', bg: 'thumb-teal', thumb: 'spring_boot' },
+  '문서': { badge: 'badge-blue', bg: 'thumb-blue', thumb: 'docker' },
+  '생성형': { badge: 'badge-pink', bg: 'thumb-pink', thumb: 'generative_ai' },
+  '예측': { badge: 'badge-blue', bg: 'thumb-blue', thumb: 'kubernetes' },
+  '이상탐지': { badge: 'badge-amber', bg: 'thumb-amber', thumb: 'docker' },
 }
 
-const config = computed(() => categoryConfig[course.value?.category] || {})
+const config = computed(() => categoryConfig[product.value?.category] || {})
 const badgeClass = computed(() => config.value.badge || 'badge-gray')
 const thumbBg = computed(() => config.value.bg || 'thumb-gray')
 
-const displayCategory = computed(() => course.value?.category || '-')
+const displayCategory = computed(() => product.value?.category || '-')
 
-const displayInstructorName = computed(() => {
+const displayProviderName = computed(() => {
   return (
-    course.value?.instructorName ||
-    course.value?.teacherName ||
-    course.value?.instructor?.name ||
-    course.value?.instructor_name ||
-    course.value?.ownerName ||
-    '강사 정보 없음'
+    product.value?.providerName ||
+    product.value?.vendorName ||
+    product.value?.provider?.name ||
+    product.value?.provider_name ||
+    product.value?.ownerName ||
+    '제공사 정보 없음'
   )
 })
 
-const displayEnrollmentCount = computed(() => {
+const displaySubscriberCount = computed(() => {
   const value = Number(
-    course.value?.enrollmentCount ??
-    course.value?.enrollment_count ??
+    product.value?.subscriberCount ??
+    product.value?.subscriber_count ??
     0
   )
   return Number.isNaN(value) ? 0 : value.toLocaleString()
 })
 
 const displayPrice = computed(() => {
-  const value = Number(course.value?.price ?? 0)
+  const value = Number(product.value?.price ?? 0)
   return Number.isNaN(value) ? '0' : value.toLocaleString()
 })
 
 const thumbSrc = computed(() => {
-  const key = course.value?.thumbnail || config.value.thumb
+  const key = product.value?.thumbnail || config.value.thumb
   if (!key) return null
 
   try {
@@ -137,112 +139,112 @@ const thumbSrc = computed(() => {
 })
 
 const buttonLabel = computed(() => {
-  if (isInstructor.value) return '강사 계정은 신청 불가'
-  if (enrollmentStatus.value === 'ACTIVE') return '내 수강 목록으로 이동'
-  if (enrollmentStatus.value === 'PENDING') return '신청 완료 · 결제 처리 중'
-  return '결제하고 수강하기'
+  if (isProvider.value) return '제공사 계정은 구독 불가'
+  if (subscriptionStatus.value === 'ACTIVE') return '내 구독 목록으로 이동'
+  if (subscriptionStatus.value === 'PENDING') return '신청 완료 · 결제 처리 중'
+  return '구독하고 API 사용하기'
 })
 
 const buttonDisabled = computed(() => {
-  if (enrolling.value) return true
-  if (isInstructor.value) return true
-  if (enrollmentStatus.value === 'PENDING') return true
+  if (subscribing.value) return true
+  if (isProvider.value) return true
+  if (subscriptionStatus.value === 'PENDING') return true
   return false
 })
 
 const helperText = computed(() => {
-  if (isInstructor.value) {
-    return '강사 계정은 본인 강의를 수강 신청할 수 없습니다.'
+  if (isProvider.value) {
+    return '제공사 계정은 자사 API 상품을 구독할 수 없습니다.'
   }
 
-  if (enrollmentStatus.value === 'ACTIVE') {
-    return '이미 수강 중인 강의입니다. 내 수강 목록에서 바로 이어서 학습할 수 있습니다.'
+  if (subscriptionStatus.value === 'ACTIVE') {
+    return '이미 구독 중인 API입니다. 내 구독 목록에서 연동 정보를 확인할 수 있습니다.'
   }
 
-  if (enrollmentStatus.value === 'PENDING') {
-    return '수강 신청이 접수되었습니다. 결제/처리 상태가 반영되면 내 수강 목록에서 확인할 수 있습니다.'
+  if (subscriptionStatus.value === 'PENDING') {
+    return '구독 신청이 접수되었습니다. 결제가 완료되면 내 구독 목록에서 ACTIVE로 전환됩니다.'
   }
 
-  return '결제를 진행하면 수강 신청이 함께 처리됩니다.'
+  return '결제를 진행하면 구독 신청이 함께 처리됩니다.'
 })
 
-async function loadEnrollmentStatus() {
-  if (!auth.user?.id || !course.value?.id || isInstructor.value) {
-    enrollmentStatus.value = 'NONE'
+async function loadSubscriptionStatus() {
+  if (!auth.user?.id || !product.value?.id || isProvider.value) {
+    subscriptionStatus.value = 'NONE'
     return
   }
 
   try {
-    const res = await enrollmentApi.getMyEnrollments()
-    console.log('[CourseDetail] my enrollments response =', res.data)
+    const res = await subscriptionApi.getMySubscriptions()
+    console.log('[ProductDetail] my subscriptions response =', res.data)
 
-    const enrollments = Array.isArray(res.data?.data)
+    const subscriptions = Array.isArray(res.data?.data)
       ? res.data.data
       : Array.isArray(res.data)
         ? res.data
         : []
 
-    const matched = enrollments.find(item => Number(item.courseId) === Number(course.value.id))
+    const matched = subscriptions.find(item => Number(item.productId) === Number(product.value.id))
 
     if (!matched) {
-      enrollmentStatus.value = 'NONE'
+      subscriptionStatus.value = 'NONE'
       return
     }
 
-    enrollmentStatus.value = matched.status === 'ACTIVE' ? 'ACTIVE' : 'PENDING'
+    subscriptionStatus.value = matched.status === 'ACTIVE' ? 'ACTIVE' : 'PENDING'
   } catch (e) {
-    console.error('[CourseDetail] failed to load enrollment status:', e)
-    enrollmentStatus.value = 'NONE'
+    console.error('[ProductDetail] failed to load subscription status:', e)
+    subscriptionStatus.value = 'NONE'
   }
 }
 
 async function handlePrimaryAction() {
-  enrollError.value = ''
+  subscribeError.value = ''
 
-  if (!course.value?.id) {
-    enrollError.value = '강의 정보가 올바르지 않습니다.'
+  if (!product.value?.id) {
+    subscribeError.value = 'API 상품 정보가 올바르지 않습니다.'
     return
   }
 
-  if (isInstructor.value) {
-    enrollError.value = '강사 계정은 본인 강의를 수강 신청할 수 없습니다.'
+  if (isProvider.value) {
+    subscribeError.value = '제공사 계정은 자사 API 상품을 구독할 수 없습니다.'
     return
   }
 
-  if (enrollmentStatus.value === 'ACTIVE') {
-    router.push('/enrollments')
+  if (subscriptionStatus.value === 'ACTIVE') {
+    router.push('/subscriptions')
     return
   }
 
-  if (enrollmentStatus.value === 'PENDING') {
+  if (subscriptionStatus.value === 'PENDING') {
     return
   }
 
-  enrolling.value = true
+  subscribing.value = true
 
   try {
-    await enrollmentApi.enroll(course.value.id)
-    enrollmentStatus.value = 'PENDING'
+    await subscriptionApi.subscribe(product.value.id)
+    subscriptionStatus.value = 'PENDING'
   } catch (e) {
-    console.error('[CourseDetail] enroll failed:', e)
-    enrollError.value = e.response?.data?.message || '결제/수강 신청에 실패했습니다.'
+    console.error('[ProductDetail] subscribe failed:', e)
+    subscribeError.value = e.response?.data?.message || '결제/구독 신청에 실패했습니다.'
   } finally {
-    enrolling.value = false
+    subscribing.value = false
   }
 }
 
 onMounted(async () => {
-  await courseStore.fetchCourse(route.params.id)
-  console.log('[CourseDetail] selectedCourse =', courseStore.selectedCourse)
-  await loadEnrollmentStatus()
+  await productStore.fetchProduct(route.params.id)
+  console.log('[ProductDetail] selectedProduct =', productStore.selectedProduct)
+  await loadSubscriptionStatus()
 })
 
 watch(
-  () => courseStore.selectedCourse,
+  () => productStore.selectedProduct,
   async (value) => {
-    console.log('[CourseDetail] selectedCourse changed =', value)
+    console.log('[ProductDetail] selectedProduct changed =', value)
     if (value?.id) {
-      await loadEnrollmentStatus()
+      await loadSubscriptionStatus()
     }
   },
   { deep: true }
@@ -332,6 +334,11 @@ watch(
   gap: 14px;
 }
 
+.price-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
 .enroll-price {
   font-size: 26px;
   font-weight: 700;
